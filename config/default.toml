@@ -1,0 +1,29 @@
+[mqtt]
+broker_host = "localhost"
+broker_port = 1883
+client_id = "irigasi-core"
+
+[storage]
+sqlite_path = "data/irigasi.db"
+
+[decision]
+dry_run = false
+
+[[nodes]]
+id = "esp32-02"
+
+[nodes.valve_1]
+mode = "sensor"
+open_temp_threshold_c = 27.0
+open_soil_max_pct = 35.0
+close_temp_threshold_c = 25.0
+close_soil_min_pct = 45.0
+max_open_duration_s = 120
+
+[nodes.valve_2]
+mode = "sensor"
+open_temp_threshold_c = 27.0
+open_soil_max_pct = 35.0
+close_temp_threshold_c = 25.0
+close_soil_min_pct = 45.0
+max_open_duration_s = 120

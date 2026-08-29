@@ -1,0 +1,32 @@
+stages:
+  - build
+
+variables:
+  CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+  CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
+  CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cargo/
+    - target/
+
+build:
+  stage: build
+  image: rust:1.95
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y --no-install-recommends gcc-aarch64-linux-gnu libc6-dev-arm64-cross pkg-config
+    - rustup target add aarch64-unknown-linux-gnu
+  script:
+    - cargo build --release --target aarch64-unknown-linux-gnu
+    - file target/aarch64-unknown-linux-gnu/release/irigasi-core
+  artifacts:
+    name: "irigasi-core-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - target/aarch64-unknown-linux-gnu/release/irigasi-core
+    expire_in: 2 weeks
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'

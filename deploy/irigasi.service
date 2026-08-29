@@ -1,0 +1,16 @@
+[Unit]
+Description=Irigasi Core Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=irigasi
+WorkingDirectory=/home/irigasi/app
+ExecStart=/home/irigasi/app/irigasi-core
+Environment=IRIGASI_CONFIG_PATH=/home/irigasi/app/config.toml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

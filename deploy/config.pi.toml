@@ -1,0 +1,37 @@
+# Dipakai di Raspberry Pi (bukan config/default.toml yang dipakai untuk dev lokal di laptop).
+# scp file ini ke Pi sebagai /home/irigasi/app/config.toml -- plan.md §5 Fase A step 8.
+#
+# Broker MQTT: broker.emqx.io (public), sama dengan yang dipakai firmware ESP32 (iot.c) --
+# keputusan tim untuk tetap pakai broker publik, bukan Mosquitto lokal di Pi. Ini deviasi dari
+# prinsip "edge-only, tanpa cloud" di brief.md, tapi lebih sederhana untuk testing sekarang
+# (ESP32 & Pi tidak perlu 1 LAN yang sama).
+
+[mqtt]
+broker_host = "broker.emqx.io"
+broker_port = 1883
+client_id = "irigasi-core"
+
+[storage]
+sqlite_path = "/home/irigasi/app/data/irigasi.db"
+
+[decision]
+dry_run = false
+
+[[nodes]]
+id = "esp32-02"
+
+[nodes.valve_1]
+mode = "sensor"
+open_temp_threshold_c = 27.0
+open_soil_max_pct = 35.0
+close_temp_threshold_c = 25.0
+close_soil_min_pct = 45.0
+max_open_duration_s = 120
+
+[nodes.valve_2]
+mode = "sensor"
+open_temp_threshold_c = 27.0
+open_soil_max_pct = 35.0
+close_temp_threshold_c = 25.0
+close_soil_min_pct = 45.0
+max_open_duration_s = 120
