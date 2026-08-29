@@ -1,7 +1,7 @@
 [Unit]
 Description=Irigasi Core Service
-After=network-online.target
-Wants=network-online.target
+After=network.target mosquitto.service
+Requires=mosquitto.service
 
 [Service]
 Type=simple

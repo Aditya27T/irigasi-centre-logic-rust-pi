@@ -1,13 +1,14 @@
 # Dipakai di Raspberry Pi (bukan config/default.toml yang dipakai untuk dev lokal di laptop).
 # scp file ini ke Pi sebagai /home/irigasi/app/config.toml -- plan.md §5 Fase A step 8.
 #
-# Broker MQTT: broker.emqx.io (public), sama dengan yang dipakai firmware ESP32 (iot.c) --
-# keputusan tim untuk tetap pakai broker publik, bukan Mosquitto lokal di Pi. Ini deviasi dari
-# prinsip "edge-only, tanpa cloud" di brief.md, tapi lebih sederhana untuk testing sekarang
-# (ESP32 & Pi tidak perlu 1 LAN yang sama).
+# Broker MQTT: Mosquitto LOKAL di Pi (bukan broker.emqx.io) -- kembali ke rencana awal brief.md
+# ("edge-only, tanpa cloud"). Alasan: broker.emqx.io (public test broker) terbukti tidak reliable
+# untuk client rumqttc kita -- SUBSCRIBE terkirim tapi SUBACK tidak pernah balik setelah restart,
+# walau mosquitto_sub biasa berhasil instan di broker yang sama. ESP32 sekarang harus connect ke
+# IP LAN Pi ini (lihat iot.c), bukan lagi broker publik.
 
 [mqtt]
-broker_host = "broker.emqx.io"
+broker_host = "localhost"
 broker_port = 1883
 client_id = "irigasi-core"
 
@@ -16,6 +17,25 @@ sqlite_path = "/home/irigasi/app/data/irigasi.db"
 
 [decision]
 dry_run = false
+
+[[nodes]]
+id = "esp32-01"
+
+[nodes.valve_1]
+mode = "sensor"
+open_temp_threshold_c = 27.0
+open_soil_max_pct = 35.0
+close_temp_threshold_c = 25.0
+close_soil_min_pct = 45.0
+max_open_duration_s = 120
+
+[nodes.valve_2]
+mode = "sensor"
+open_temp_threshold_c = 27.0
+open_soil_max_pct = 35.0
+close_temp_threshold_c = 25.0
+close_soil_min_pct = 45.0
+max_open_duration_s = 120
 
 [[nodes]]
 id = "esp32-02"

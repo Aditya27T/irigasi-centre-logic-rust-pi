@@ -9,14 +9,16 @@
 //=================================================
 const char* ssid        = "Modalo Dewe !!";
 const char* password    = "minimalijinsek";
-// Broker publik broker.emqx.io -- keputusan tim, dipertahankan (bukan Mosquitto lokal di Pi).
-const char* mqtt_server = "broker.emqx.io";
+// Mosquitto LOKAL di Raspberry Pi (IP LAN-nya) -- broker.emqx.io (public) terbukti tidak
+// reliable untuk client Pi kita (SUBACK tidak pernah balik setelah reconnect). ESP32 & Pi
+// harus 1 jaringan WiFi yang sama supaya IP ini bisa dijangkau.
+const char* mqtt_server = "192.168.2.119";
 const int   mqtt_port   = 1883;
 
 //=================================================
 // IDENTITAS NODE (sesuai skema topic plan.md §2: irigasi/ipesg/v1/<device_id>/...)
 //=================================================
-const char* device_id   = "esp32-02";
+const char* device_id   = "esp32-01";
 const char* mqtt_id     = device_id;
 
 char topic_sensor[48];

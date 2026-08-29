@@ -14,7 +14,7 @@ Kondisi environment dev machine (macOS, Apple Silicon) sudah dicek:
 
 **Keputusan yang sudah dikonfirmasi** (dari firmware `iot.c` yang sudah jalan di hardware): **1 ESP32 mengontrol 2 valve independen** — `RELAY3` digerakkan oleh pasangan sensor (`soil3`/`suhu3`), `RELAY4` oleh pasangan sensor (`soil4`/`suhu4`). Firmware sudah diubah supaya kedua relay ini murni dieksekusi dari command MQTT Pi (`valve_id: 1|2`), bukan lagi diputuskan lokal di ESP32 — lihat §2 dan §4.
 
-**Deviasi dari brief (keputusan tim)**: broker MQTT tetap pakai **`broker.emqx.io` (broker publik)**, bukan Mosquitto lokal di Pi seperti rencana awal brief.md ("edge-only, tanpa cloud"). Alasan praktis: ESP32 & Pi tidak perlu berada di LAN yang sama, lebih sederhana untuk testing sekarang. Konsekuensi: Pi *tidak* menjalankan Mosquitto sendiri (§5 step 7 disederhanakan), `config.pi.toml` pakai `broker_host = "broker.emqx.io"`, dan Pi butuh akses internet keluar (bukan cuma LAN lokal) untuk terhubung ke broker. Ini titik yang perlu didiskusikan ulang kalau nanti mau benar-benar "edge-only" sesuai proposal (Fase D).
+**Broker MQTT: Mosquitto lokal di Pi** (sesuai rencana awal brief.md, "edge-only, tanpa cloud"). Sempat dicoba pakai `broker.emqx.io` (broker publik) untuk kemudahan testing awal (ESP32 & Pi tidak perlu 1 LAN), tapi **dibalik lagi** setelah terbukti tidak reliable: client `rumqttc` di Pi berulang kali gagal dapat `SUBACK` dari broker publik ini setiap kali service di-restart (walau `mosquitto_sub` biasa selalu berhasil instan di broker yang sama, jadi bukan masalah jaringan) — begitu pindah ke Mosquitto lokal, subscribe langsung normal. Konsekuensi: ESP32 & Pi wajib 1 jaringan WiFi yang sama (`mqtt_server` di `iot.c` = IP LAN Pi), `config.pi.toml` pakai `broker_host = "localhost"`.
 
 ---
 
@@ -160,7 +160,7 @@ Engine event-driven (dipicu tiap sensor reading masuk, bukan polling — termasu
 1. **Toolchain**: start OrbStack (`open -a OrbStack`) → `docker info` untuk verifikasi; `rustup target add aarch64-unknown-linux-gnu`.
 2. `cargo init --name irigasi-core`, scaffold modul sesuai §1, tambah dependency §1.
 3. `cargo build`/`cargo run` native di macOS dulu — pastikan compile sebelum cross-compile.
-4. Uji MQTT round-trip tanpa ESP32: `brew services start mosquitto` (broker lokal, cuma untuk uji unit di laptop — beda dari broker.emqx.io yang dipakai ESP32↔Pi asli, lihat Context), publish dummy pakai `mosquitto_pub` ke `irigasi/ipesg/v1/esp32-02/sensor`, verifikasi command muncul di `mosquitto_sub` topic `.../command`.
+4. Uji MQTT round-trip tanpa ESP32: `brew services start mosquitto` (broker lokal di laptop, cuma untuk uji unit), publish dummy pakai `mosquitto_pub` ke `irigasi/ipesg/v1/esp32-01/sensor`, verifikasi command muncul di `mosquitto_sub` topic `.../command`.
 5. Cek isi `readings`/`decisions` di SQLite lokal setelah step 4.
 6. **Cross-compile**: tool `cross` (Docker-based) **tidak dipakai** — image resminya (`ghcr.io/cross-rs/aarch64-unknown-linux-gnu`) ternyata cuma ada varian amd64, jadi kalau dipaksa jalan di Mac Apple Silicon akan lewat emulasi QEMU (lambat, dan sempat bikin disk penuh saat pull image besar). Solusi yang dipakai: `docker run` pakai image resmi **`rust:1.95`** (multi-arch, ada native arm64) + install `gcc-aarch64-linux-gnu`/`libc6-dev-arm64-cross` via `apt` di dalam container — persis pendekatan CI di §6, dijalankan lokal:
    ```bash
@@ -171,10 +171,12 @@ Engine event-driven (dipicu tiap sensor reading masuk, bukan polling — termasu
      cargo build --release --target aarch64-unknown-linux-gnu'
    ```
    Verifikasi `file target/aarch64-unknown-linux-gnu/release/irigasi-core` = ELF aarch64. Volume `irigasi-cargo-registry` menyimpan cache crates.io supaya build berikutnya jauh lebih cepat.
-7. **Setup Pi** (`ssh <user>@<IP Pi>`, cek `uname -m` = `aarch64`): karena broker pakai broker.emqx.io (bukan Mosquitto lokal, lihat Context), step ini disederhanakan jadi cuma `mkdir -p ~/app/data` (`deploy/pi-setup.sh`) — tidak perlu install/setup Mosquitto.
-8. `scp` binary + `deploy/config.pi.toml` (broker_host="broker.emqx.io") ke Pi sebagai `~/app/config.toml`, jalankan manual dulu (foreground) pastikan connect MQTT sukses tanpa crash.
-9. Deploy systemd unit `deploy/irigasi.service` (`User=irigasi`, `WorkingDirectory=~/app`, `Restart=on-failure`, `After=network-online.target` — bukan lagi `Requires=mosquitto.service` karena broker eksternal), `enable --now`, pantau `journalctl -u irigasi -f`.
-10. **Uji end-to-end dengan ESP32 asli**: firmware & Pi sudah connect ke broker yang sama (broker.emqx.io), cocokkan nama topic & field JSON dengan §2, pantau reading masuk + decision ter-log di journalctl & SQLite. Actuation valve fisik **sengaja ditunda** — Fase A berhenti di "Pi menghitung & mem-publish/log command", bukan "valve bergerak", karena hardware valve belum ada.
+7. **Setup Pi** (`ssh <user>@<IP Pi>`, cek `uname -m` = `aarch64`): install Mosquitto (`apt install mosquitto mosquitto-clients`), listener LAN (`listener 1883 0.0.0.0`, `allow_anonymous true` — cukup untuk MVP WiFi-lokal), `systemctl enable --now mosquitto`, `mkdir -p ~/app/data`.
+8. `scp` binary + `deploy/config.pi.toml` (broker_host="localhost") ke Pi sebagai `~/app/config.toml`, jalankan manual dulu (foreground) pastikan connect MQTT sukses tanpa crash.
+9. Deploy systemd unit `deploy/irigasi.service` (`User=irigasi`, `WorkingDirectory=~/app`, `Restart=on-failure`, `After=network-online.target Requires=mosquitto.service`), `enable --now`, pantau `journalctl -u irigasi -f`.
+10. **Uji end-to-end dengan ESP32 asli**: firmware (`iot.c`, `mqtt_server` = IP LAN Pi) & Pi connect ke Mosquitto lokal yang sama, cocokkan nama topic & field JSON dengan §2, pantau reading masuk + decision ter-log di journalctl & SQLite. Actuation valve fisik **sengaja ditunda** — Fase A berhenti di "Pi menghitung & mem-publish/log command", bukan "valve bergerak", karena hardware valve belum ada.
+
+**Catatan dari implementasi nyata**: broker.emqx.io (public) sempat dicoba dulu untuk Fase A (lihat Context) tapi dibalik ke Mosquitto lokal karena `rumqttc` gagal dapat `SUBACK` dari broker publik itu setiap restart. Device_id fisik yang benar-benar dipakai ternyata `esp32-01` (bukan `esp32-02` seperti asumsi awal) — `config.pi.toml` mendaftarkan **kedua-duanya** supaya fleksibel kalau ada unit ke-2.
 
 **Akses SSH ke Pi**: dipakai key khusus (`deploy/.ssh/irigasi_pi`, di-gitignore) yang di-install ke Pi via `ssh-copy-id` sekali di awal (autentikasi awal pakai password), bukan reuse key pribadi laptop — mengikuti prinsip yang sama seperti brief step 14 (SSH key khusus, bukan personal).
 
