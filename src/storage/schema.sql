@@ -19,6 +19,10 @@ CREATE TABLE IF NOT EXISTS twin_state (
     last_temp_2_c             REAL,
     valve_1_open              INTEGER NOT NULL DEFAULT 0,
     valve_2_open              INTEGER NOT NULL DEFAULT 0,
+    valve_1_source            TEXT NOT NULL DEFAULT 'auto',
+    valve_1_expires_at        INTEGER,
+    valve_2_source            TEXT NOT NULL DEFAULT 'auto',
+    valve_2_expires_at        INTEGER,
     water_balance_mm          REAL NOT NULL DEFAULT 0,
     last_reading_at           INTEGER,
     updated_at                INTEGER NOT NULL

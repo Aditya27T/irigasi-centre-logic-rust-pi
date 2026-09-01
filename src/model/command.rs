@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Command Pi->ESP32 (topic `irigasi/ipesg/v1/<device_id>/command`), lihat plan.md §2.
 #[derive(Debug, Clone, Serialize)]
@@ -12,7 +12,7 @@ pub struct ValveCommand {
     pub reason: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ValveAction {
     Open,

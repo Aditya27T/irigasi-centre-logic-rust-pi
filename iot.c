@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -9,11 +10,12 @@
 //=================================================
 const char* ssid        = "Modalo Dewe !!";
 const char* password    = "minimalijinsek";
-// Mosquitto LOKAL di Raspberry Pi (IP LAN-nya) -- broker.emqx.io (public) terbukti tidak
-// reliable untuk client Pi kita (SUBACK tidak pernah balik setelah reconnect). ESP32 & Pi
-// harus 1 jaringan WiFi yang sama supaya IP ini bisa dijangkau.
-const char* mqtt_server = "192.168.2.119";
-const int   mqtt_port   = 1883;
+// TEST: HiveMQ Cloud (TLS, port 8883) -- dipakai sementara untuk uji koneksi ESP32 saja.
+// Pi/Rust (irigasi-core) TETAP pakai Mosquitto lokal (localhost) untuk sekarang, belum diubah.
+const char* mqtt_server = "36d454362d184d17bf3e8a1d7131b8fc.s1.eu.hivemq.cloud";
+const int   mqtt_port   = 8883;
+const char* mqtt_user   = "hivemq.webclient.1788009652480";
+const char* mqtt_pass   = "4z5%artmPRAtNT0OdmAxB9HHEHTqPSaT";
 
 //=================================================
 // IDENTITAS NODE (sesuai skema topic plan.md §2: irigasi/ipesg/v1/<device_id>/...)
@@ -24,7 +26,7 @@ const char* mqtt_id     = device_id;
 char topic_sensor[48];
 char topic_command[48];
 
-WiFiClient espClient;
+WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
 unsigned long lastMsg = 0;
@@ -171,7 +173,7 @@ void setupWiFi() {
 void reconnect() {
   while (!client.connected()) {
     Serial.print("Mencoba koneksi MQTT...");
-    if (client.connect(mqtt_id)) {
+    if (client.connect(mqtt_id, mqtt_user, mqtt_pass)) {
       Serial.println("Terhubung ke MQTT Broker!");
       client.subscribe(topic_command);
       Serial.print("Subscribe command: ");
@@ -217,6 +219,7 @@ void setup() {
   setRelay(RELAY4, false);
 
   setupWiFi();
+  espClient.setInsecure(); // TEST HiveMQ Cloud: skip validasi CA cert (cukup untuk uji cepat, bukan untuk produksi)
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(onMqttMessage);
 

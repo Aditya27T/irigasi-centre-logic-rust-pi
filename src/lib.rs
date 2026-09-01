@@ -32,6 +32,23 @@ pub async fn run(config: Config) -> Result<()> {
 
     let mut twin = Twin::default();
 
+    #[cfg(feature = "dashboard")]
+    if config.dashboard.enabled {
+        let dashboard_db = storage::db::open(&config.storage.sqlite_path)
+            .context("membuka koneksi SQLite kedua untuk dashboard")?;
+        let state = dashboard::AppState {
+            db: std::sync::Arc::new(std::sync::Mutex::new(dashboard_db)),
+            mqtt: client.clone(),
+            nodes: std::sync::Arc::new(config.nodes.clone()),
+        };
+        let bind_addr = config.dashboard.bind_addr.clone();
+        tokio::spawn(async move {
+            if let Err(err) = dashboard::serve(state, &bind_addr).await {
+                error!("Dashboard HTTP server berhenti dengan error: {err}");
+            }
+        });
+    }
+
     loop {
         let event = match eventloop.poll().await {
             Ok(event) => event,
@@ -103,7 +120,13 @@ pub async fn run(config: Config) -> Result<()> {
                     Ok(payload) => match client.publish(&topic, QoS::AtLeastOnce, false, payload).await {
                         Ok(_) => {
                             published = true;
-                            twin.set_valve_state(&device_id, outcome.valve_id, outcome.action == Action::Open);
+                            let is_open = outcome.action == Action::Open;
+                            let expires_at = if is_open {
+                                Some(chrono::Utc::now().timestamp() + outcome.duration_s.unwrap_or(0) as i64)
+                            } else {
+                                None
+                            };
+                            twin.set_valve_state(&device_id, outcome.valve_id, is_open, "auto", expires_at);
                             info!(
                                 "Command dikirim: {topic} action={:?} valve_id={} reason={}",
                                 outcome.action, outcome.valve_id, outcome.reason

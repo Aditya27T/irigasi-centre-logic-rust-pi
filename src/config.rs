@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -8,6 +8,8 @@ pub struct Config {
     #[serde(default)]
     pub decision: DecisionConfig,
     pub nodes: Vec<NodeConfig>,
+    #[serde(default)]
+    pub dashboard: DashboardConfig,
 }
 
 #[derive(Debug, Deserialize)]
@@ -16,6 +18,12 @@ pub struct MqttConfig {
     pub broker_port: u16,
     #[serde(default = "default_client_id")]
     pub client_id: String,
+    #[serde(default)]
+    pub use_tls: bool,
+    #[serde(default)]
+    pub username: Option<String>,
+    #[serde(default)]
+    pub password: Option<String>,
 }
 
 fn default_client_id() -> String {
@@ -33,9 +41,12 @@ pub struct DecisionConfig {
     pub dry_run: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NodeConfig {
     pub id: String,
+    /// Label zona/plot yang mudah dibaca manusia (mis. "Zona A"), ditampilkan di dashboard.
+    #[serde(default)]
+    pub zone: Option<String>,
     pub valve_1: ValveConfig,
     pub valve_2: ValveConfig,
 }
@@ -43,7 +54,7 @@ pub struct NodeConfig {
 /// Konfigurasi 1 valve. Mode "sensor" = threshold suhu+kelembapan (hysteresis,
 /// mereplikasi logika asli firmware). Mode "schedule" = buka per jam, tapi
 /// kondisi close tetap sama di kedua mode. Lihat plan.md §4.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "mode", rename_all = "lowercase")]
 pub enum ValveConfig {
     Sensor {
@@ -81,11 +92,35 @@ impl ValveConfig {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ScheduleWindow {
     /// Format "HH:MM", waktu lokal Pi.
     pub start: String,
     pub end: String,
+}
+
+/// Konfigurasi dashboard HTTP (feature "dashboard"). Field ini tetap ada tanpa
+/// cfg-gate supaya config.rs kompilasi sama persis dengan/tanpa feature, dan
+/// config lama tanpa [dashboard] tetap valid (default: nonaktif).
+#[derive(Debug, Deserialize)]
+pub struct DashboardConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "default_bind_addr")]
+    pub bind_addr: String,
+}
+
+impl Default for DashboardConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            bind_addr: default_bind_addr(),
+        }
+    }
+}
+
+fn default_bind_addr() -> String {
+    "0.0.0.0:8080".to_string()
 }
 
 impl Config {

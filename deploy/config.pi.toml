@@ -1,16 +1,17 @@
 # Dipakai di Raspberry Pi (bukan config/default.toml yang dipakai untuk dev lokal di laptop).
 # scp file ini ke Pi sebagai /home/irigasi/app/config.toml -- plan.md §5 Fase A step 8.
 #
-# Broker MQTT: Mosquitto LOKAL di Pi (bukan broker.emqx.io) -- kembali ke rencana awal brief.md
-# ("edge-only, tanpa cloud"). Alasan: broker.emqx.io (public test broker) terbukti tidak reliable
-# untuk client rumqttc kita -- SUBSCRIBE terkirim tapi SUBACK tidak pernah balik setelah restart,
-# walau mosquitto_sub biasa berhasil instan di broker yang sama. ESP32 sekarang harus connect ke
-# IP LAN Pi ini (lihat iot.c), bukan lagi broker publik.
+# TEST: HiveMQ Cloud (TLS 8883) -- ESP32 (iot.c) juga diarahkan ke broker ini untuk uji coba.
+# Broker lama (Mosquitto lokal di Pi) masih terpasang & jalan, tinggal revert broker_host jadi
+# "localhost":1883 kalau mau kembali ke desain edge-only brief.md.
 
 [mqtt]
-broker_host = "localhost"
-broker_port = 1883
+broker_host = "36d454362d184d17bf3e8a1d7131b8fc.s1.eu.hivemq.cloud"
+broker_port = 8883
 client_id = "irigasi-core"
+use_tls = true
+username = "hivemq.webclient.1788009652480"
+password = "4z5%artmPRAtNT0OdmAxB9HHEHTqPSaT"
 
 [storage]
 sqlite_path = "/home/irigasi/app/data/irigasi.db"
@@ -18,8 +19,13 @@ sqlite_path = "/home/irigasi/app/data/irigasi.db"
 [decision]
 dry_run = false
 
+[dashboard]
+enabled = true
+bind_addr = "0.0.0.0:8080"
+
 [[nodes]]
 id = "esp32-01"
+zone = "Zona A"
 
 [nodes.valve_1]
 mode = "sensor"
@@ -39,6 +45,7 @@ max_open_duration_s = 120
 
 [[nodes]]
 id = "esp32-02"
+zone = "Zona B"
 
 [nodes.valve_1]
 mode = "sensor"

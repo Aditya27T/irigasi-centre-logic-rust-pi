@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Irigasi Dashboard</title>
+<style>
+  :root {
+    --accent: #2f6b4f;
+    --amber: #b5761f;
+    --red: #a33a2c;
+    --muted: #6b7570;
+    --bg: #f2f1ec;
+    --card: #ffffff;
+    --border: #e9e7df;
+    --border-strong: #ddd9cf;
+    --ink: #14181a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 20px;
+  }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .topbar h1 { font-size: 1.3rem; margin: 0; }
+  .clock { font-family: ui-monospace, "IBM Plex Mono", monospace; color: var(--muted); font-size: 0.9rem; }
+  .tabs { display: inline-flex; background: var(--border); border-radius: 8px; padding: 3px; gap: 2px; }
+  .tabs button {
+    border: none; background: transparent; padding: 6px 14px; border-radius: 6px;
+    font-size: 0.85rem; cursor: pointer; color: var(--muted);
+  }
+  .tabs button.active { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .kpi .label { font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+  .kpi .value { font-size: 1.5rem; font-weight: 600; }
+  .kpi .sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  .nodes { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+  .node-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .node-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .node-head .zone { font-size: 0.78rem; color: var(--muted); }
+  .node-head .device { font-size: 1.05rem; font-weight: 600; }
+  .status-badge { font-size: 0.72rem; font-weight: 600; padding: 3px 9px; border-radius: 10px; white-space: nowrap; }
+  .node-body { padding: 14px 16px; }
+  .soil-row { margin-bottom: 10px; }
+  .soil-row .top { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
+  .soil-row .top .verdict { font-weight: 600; }
+  .bar-track { background: #eceae2; border-radius: 6px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; }
+  .metrics { display: flex; gap: 14px; margin: 12px 0; font-size: 0.8rem; color: var(--muted); flex-wrap: wrap; }
+  .metrics b { color: var(--ink); font-weight: 600; }
+
+  .valve-row { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
+  .valve-row .line1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .valve-row .state { font-size: 0.82rem; font-weight: 600; }
+  .valve-row .badge { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 8px; }
+  .valve-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .dur-chip, .act-btn, .chip {
+    border: 1px solid var(--border-strong); background: #fff; color: #4a534e;
+    padding: 4px 9px; border-radius: 6px; font-size: 0.76rem; cursor: pointer;
+  }
+  .dur-chip.on { background: var(--ink); color: #f2f1ec; border-color: var(--ink); }
+  .act-btn.open { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .act-btn.close { background: #fff; }
+  .act-btn.release { background: #fff; color: var(--amber); border-color: var(--amber); }
+
+  h2 { font-size: 1rem; margin: 22px 0 10px; }
+  .filters { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .filter-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .filter-group span.label { font-size: 0.78rem; color: var(--muted); margin-right: 2px; }
+  .chip.on { background: var(--ink); color: #f2f1ec; border-color: var(--ink); }
+
+  .stats { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; font-size: 0.82rem; color: var(--muted); }
+  .stats b { color: var(--ink); }
+
+  table { border-collapse: collapse; width: 100%; background: var(--card); font-size: 0.82rem; }
+  th, td { border-bottom: 1px solid var(--border); padding: 8px 10px; text-align: left; white-space: nowrap; }
+  th { background: #faf9f5; font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+  .table-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+  .muted { color: var(--muted); }
+  .download-btn { margin-top: 10px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Irigasi Dashboard</h1>
+  <div style="display:flex; align-items:center; gap:14px;">
+    <span class="clock" id="clock"></span>
+    <div class="tabs">
+      <button data-page="control" class="active">Kontrol &amp; Pantau</button>
+      <button data-page="data">Data &amp; Unduh</button>
+    </div>
+  </div>
+</div>
+
+<section id="page-control">
+  <div class="kpis" id="kpis"></div>
+  <div class="nodes" id="nodes"></div>
+</section>
+
+<section id="page-data" hidden>
+  <div class="filters">
+    <div class="filter-group">
+      <span class="label">Node:</span>
+      <span id="filter-node"></span>
+    </div>
+    <div class="filter-group">
+      <span class="label">Jenis:</span>
+      <span id="filter-kind"></span>
+    </div>
+    <div class="filter-group">
+      <span class="label">Rentang:</span>
+      <span id="filter-range"></span>
+    </div>
+  </div>
+  <div class="stats" id="data-stats"></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Waktu</th><th>Node</th><th>Jenis</th><th>Soil 1</th><th>Soil 2</th><th>Temp 1</th><th>Temp 2</th><th>Catatan</th></tr>
+      </thead>
+      <tbody id="data-rows"></tbody>
+    </table>
+  </div>
+  <button class="chip download-btn" id="download-csv">Unduh CSV</button>
+</section>
+
+<script>
+const REASON_TEXT = {
+  soil_moisture_below_threshold: 'kelembapan di bawah ambang',
+  close_condition_met: 'syarat tutup terpenuhi',
+  no_trigger: 'tidak ada pemicu',
+  manual_override: 'override operator',
+  scheduled_window: 'jadwal terjadwal',
+};
+
+let nodeConfigs = {};
+let dFilters = { node: 'Semua', kind: 'Semua', rangeHours: 24 };
+let dataRows = [];
+
+function fmtTime(epochSeconds) {
+  if (epochSeconds == null) return '-';
+  return new Date(epochSeconds * 1000).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+function fmtNum(n, digits) {
+  return (n == null) ? '-' : Number(n).toFixed(digits ?? 1);
+}
+function mmss(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const m = Math.floor(sec / 60), r = sec % 60;
+  return m + ':' + String(r).padStart(2, '0');
+}
+function reasonLabel(reason) {
+  return REASON_TEXT[reason] || reason || '-';
+}
+function soilThreshold(cfg, valveNum) {
+  const v = cfg && cfg['valve_' + valveNum];
+  return (v && v.mode === 'sensor') ? v.open_soil_max_pct : null;
+}
+
+function switchPage(page) {
+  document.getElementById('page-control').hidden = page !== 'control';
+  document.getElementById('page-data').hidden = page !== 'data';
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  if (page === 'data') loadDataPage();
+}
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => switchPage(b.dataset.page)));
+
+function tickClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+async function ensureNodeConfigs(nodes) {
+  await Promise.all(nodes.map(async n => {
+    if (nodeConfigs[n.device_id]) return;
+    try {
+      const res = await fetch(`/api/nodes/${encodeURIComponent(n.device_id)}/config`);
+      if (res.ok) nodeConfigs[n.device_id] = await res.json();
+    } catch (e) { /* ignore, threshold badge just won't show */ }
+  }));
+}
+
+function renderKpis(nodes) {
+  const onlineCount = nodes.filter(n => n.online).length;
+  let openCount = 0, totalValves = 0, dryCount = 0, water = 0;
+  nodes.forEach(n => {
+    [1, 2].forEach(vn => {
+      totalValves++;
+      if (n['valve_' + vn + '_open']) openCount++;
+    });
+    const th1 = soilThreshold(nodeConfigs[n.device_id], 1);
+    const th2 = soilThreshold(nodeConfigs[n.device_id], 2);
+    const dry1 = th1 != null && n.last_soil_moisture_1_pct != null && n.last_soil_moisture_1_pct < th1;
+    const dry2 = th2 != null && n.last_soil_moisture_2_pct != null && n.last_soil_moisture_2_pct < th2;
+    if (dry1 || dry2) dryCount++;
+    water += n.water_balance_mm || 0;
+  });
+
+  const kpis = [
+    { label: 'Node aktif', value: `${onlineCount}/${nodes.length}`, sub: onlineCount < nodes.length ? 'ada node tidak merespons' : 'semua node mengirim data' },
+    { label: 'Valve terbuka', value: `${openCount}/${totalValves}`, sub: 'penyiraman sedang berjalan' },
+    { label: 'Perlu penyiraman', value: String(dryCount), sub: 'zona di bawah ambang' },
+    { label: 'Air hari ini', value: `${water.toFixed(1)} mm`, sub: 'total seluruh zona' },
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k => `
+    <div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>
+  `).join('');
+}
+
+function valveRowHtml(node, valveNum) {
+  const open = node['valve_' + valveNum + '_open'];
+  const source = node['valve_' + valveNum + '_source'];
+  const expiresAt = node['valve_' + valveNum + '_expires_at'];
+  const manual = source === 'manual';
+  const now = Date.now() / 1000;
+  let stateLine = open ? 'TERBUKA' : 'TERTUTUP';
+  if (open && expiresAt != null) {
+    const remaining = expiresAt - now;
+    if (remaining > 0) stateLine = 'TERBUKA &middot; sisa ' + mmss(remaining);
+  }
+  const durations = [60, 120, 300];
+  return `
+    <div class="valve-row" data-device="${node.device_id}" data-valve="${valveNum}">
+      <div class="line1">
+        <span class="state" style="color:${open ? 'var(--accent)' : 'var(--muted)'}">Valve ${valveNum} &middot; ${stateLine}</span>
+        <span class="badge" style="background:${manual ? 'rgba(181,118,31,.14)' : '#eceae2'}; color:${manual ? 'var(--amber)' : 'var(--muted)'}">${manual ? 'Manual' : 'Otomatis'}</span>
+      </div>
+      <div class="valve-controls">
+        ${durations.map(d => `<button class="dur-chip" data-dur="${d}">${d < 60 ? d + 's' : (d / 60) + ' mnt'}</button>`).join('')}
+        <button class="act-btn open" data-action="open">Buka</button>
+        <button class="act-btn close" data-action="close">Tutup</button>
+        ${manual ? `<button class="act-btn release" data-action="release">Lepas ke Otomatis</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function soilBarHtml(label, pct, threshold) {
+  const low = threshold != null && pct != null && pct < threshold;
+  const color = low ? 'var(--amber)' : 'var(--accent)';
+  const width = pct == null ? 0 : Math.max(2, Math.min(100, pct));
+  return `
+    <div class="soil-row">
+      <div class="top">
+        <span>${label}</span>
+        <span class="verdict" style="color:${color}">${pct == null ? '-' : pct.toFixed(0) + '%'}${threshold != null ? (low ? ' &middot; Butuh air' : ' &middot; Cukup') : ''}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${width}%; background:${color}"></div></div>
+    </div>
+  `;
+}
+
+function renderNodes(nodes) {
+  document.getElementById('nodes').innerHTML = nodes.map(n => {
+    const cfg = nodeConfigs[n.device_id];
+    const th1 = soilThreshold(cfg, 1), th2 = soilThreshold(cfg, 2);
+    const statusBg = n.online ? 'rgba(47,107,79,.12)' : 'rgba(163,58,44,.12)';
+    const statusFg = n.online ? 'var(--accent)' : 'var(--red)';
+    const statusText = n.online ? 'Terhubung' : 'Offline';
+    return `
+      <div class="node-card">
+        <div class="node-head">
+          <div>
+            <div class="zone">${n.zone || '-'}</div>
+            <div class="device">${n.device_id}</div>
+          </div>
+          <div style="text-align:right">
+            <span class="status-badge" style="background:${statusBg}; color:${statusFg}">${statusText}</span>
+            <div class="zone" style="margin-top:4px">${fmtTime(n.last_reading_at)}</div>
+          </div>
+        </div>
+        <div class="node-body">
+          ${soilBarHtml('Kelembapan tanah 1', n.last_soil_moisture_1_pct, th1)}
+          ${soilBarHtml('Kelembapan tanah 2', n.last_soil_moisture_2_pct, th2)}
+          <div class="metrics">
+            <span>Suhu 1: <b>${fmtNum(n.last_temp_1_c)}&deg;C</b></span>
+            <span>Suhu 2: <b>${fmtNum(n.last_temp_2_c)}&deg;C</b></span>
+            <span>Air hari ini: <b>${fmtNum(n.water_balance_mm)} mm</b></span>
+          </div>
+          ${valveRowHtml(n, 1)}
+          ${valveRowHtml(n, 2)}
+        </div>
+      </div>
+    `;
+  }).join('') || `<p class="muted">Belum ada node terkonfigurasi.</p>`;
+}
+
+document.getElementById('nodes').addEventListener('click', async (ev) => {
+  const durBtn = ev.target.closest('.dur-chip');
+  if (durBtn) {
+    document.querySelectorAll(`.valve-row[data-device="${durBtn.closest('.valve-row').dataset.device}"][data-valve="${durBtn.closest('.valve-row').dataset.valve}"] .dur-chip`)
+      .forEach(b => b.classList.toggle('on', b === durBtn));
+    return;
+  }
+  const actBtn = ev.target.closest('.act-btn');
+  if (!actBtn) return;
+  const row = actBtn.closest('.valve-row');
+  const device = row.dataset.device, valve = row.dataset.valve;
+  const action = actBtn.dataset.action;
+  const durChip = row.querySelector('.dur-chip.on');
+  const duration = durChip ? Number(durChip.dataset.dur) : 120;
+
+  try {
+    let res;
+    if (action === 'release') {
+      res = await fetch(`/api/nodes/${encodeURIComponent(device)}/valves/${valve}/release`, { method: 'POST' });
+    } else {
+      res = await fetch(`/api/nodes/${encodeURIComponent(device)}/command`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ valve_id: Number(valve), action, duration_s: duration }),
+      });
+    }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      alert(`Gagal: ${body.error || res.statusText}`);
+      return;
+    }
+    await loadNodes();
+  } catch (e) {
+    alert('Gagal menghubungi server: ' + e.message);
+  }
+});
+
+async function loadNodes() {
+  const res = await fetch('/api/nodes');
+  const nodes = await res.json();
+  await ensureNodeConfigs(nodes);
+  renderKpis(nodes);
+  renderNodes(nodes);
+  return nodes;
+}
+
+// ---- Halaman Data & Unduh ----
+
+function chipsHtml(values, selected, groupSetter) {
+  return values.map(v => `<button class="chip ${v === selected ? 'on' : ''}" data-value="${v}">${v}</button>`).join('');
+}
+
+function renderDataFilters(nodeIds) {
+  document.getElementById('filter-node').innerHTML = chipsHtml(['Semua', ...nodeIds], dFilters.node);
+  document.getElementById('filter-kind').innerHTML = chipsHtml(['Semua', 'Pembacaan', 'Keputusan'], dFilters.kind);
+  const rangeLabels = { 6: '6 jam', 24: '24 jam', 168: '7 hari' };
+  document.getElementById('filter-range').innerHTML = Object.entries(rangeLabels).map(([h, label]) =>
+    `<button class="chip ${Number(h) === dFilters.rangeHours ? 'on' : ''}" data-value="${h}">${label}</button>`).join('');
+}
+
+document.getElementById('filter-node').addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.chip'); if (!btn) return;
+  dFilters.node = btn.dataset.value; renderDataTable();
+  document.querySelectorAll('#filter-node .chip').forEach(b => b.classList.toggle('on', b === btn));
+});
+document.getElementById('filter-kind').addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.chip'); if (!btn) return;
+  dFilters.kind = btn.dataset.value; renderDataTable();
+  document.querySelectorAll('#filter-kind .chip').forEach(b => b.classList.toggle('on', b === btn));
+});
+document.getElementById('filter-range').addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.chip'); if (!btn) return;
+  dFilters.rangeHours = Number(btn.dataset.value); renderDataTable();
+  document.querySelectorAll('#filter-range .chip').forEach(b => b.classList.toggle('on', b === btn));
+});
+
+async function loadDataPage() {
+  const nodesRes = await fetch('/api/nodes');
+  const nodes = await nodesRes.json();
+  const nodeIds = nodes.map(n => n.device_id);
+  renderDataFilters(nodeIds);
+
+  const perNode = await Promise.all(nodeIds.map(async id => {
+    const [rRes, dRes] = await Promise.all([
+      fetch(`/api/nodes/${encodeURIComponent(id)}/readings?limit=300`),
+      fetch(`/api/nodes/${encodeURIComponent(id)}/decisions?limit=300`),
+    ]);
+    const readings = await rRes.json();
+    const decisions = await dRes.json();
+    const rRows = readings.map(r => ({
+      ts: r.received_at, node: id, kind: 'Pembacaan',
+      s1: r.soil_moisture_1_pct, s2: r.soil_moisture_2_pct, t1: r.temp_1_c, t2: r.temp_2_c,
+      note: '-',
+    }));
+    const dRows = decisions.filter(d => d.action !== 'none').map(d => ({
+      ts: d.created_at, node: id, kind: 'Keputusan',
+      s1: d.trigger_soil_moisture_pct, s2: null, t1: d.trigger_temp_c, t2: null,
+      note: `Valve ${d.valve_id} &middot; ${d.action} &middot; ${reasonLabel(d.reason)}`,
+    }));
+    return [...rRows, ...dRows];
+  }));
+
+  dataRows = perNode.flat().sort((a, b) => b.ts - a.ts);
+  renderDataTable();
+}
+
+function renderDataTable() {
+  const cutoff = Date.now() / 1000 - dFilters.rangeHours * 3600;
+  const filtered = dataRows.filter(r =>
+    r.ts >= cutoff &&
+    (dFilters.node === 'Semua' || r.node === dFilters.node) &&
+    (dFilters.kind === 'Semua' || r.kind === dFilters.kind));
+
+  const decisions = filtered.filter(r => r.kind === 'Keputusan').length;
+  const avg = filtered.length ? filtered.reduce((a, r) => a + (r.s1 || 0), 0) / filtered.length : 0;
+  document.getElementById('data-stats').innerHTML = `
+    <span>Baris hasil saringan: <b>${filtered.length}</b></span>
+    <span>Pembacaan: <b>${filtered.length - decisions}</b></span>
+    <span>Keputusan valve: <b>${decisions}</b></span>
+    <span>Rata-rata soil 1: <b>${avg.toFixed(1)}%</b></span>
+  `;
+
+  const shown = filtered.slice(0, 200);
+  document.getElementById('data-rows').innerHTML = shown.map(r => `
+    <tr>
+      <td>${fmtTime(r.ts)}</td>
+      <td>${r.node}</td>
+      <td style="color:${r.kind === 'Keputusan' ? 'var(--accent)' : 'var(--muted)'}">${r.kind}</td>
+      <td>${fmtNum(r.s1)}%</td>
+      <td>${r.s2 == null ? '-' : fmtNum(r.s2) + '%'}</td>
+      <td>${fmtNum(r.t1)}&deg;C</td>
+      <td>${r.t2 == null ? '-' : fmtNum(r.t2) + '&deg;C'}</td>
+      <td>${r.note}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="8" class="muted">Tidak ada data pada rentang/filter ini</td></tr>`;
+
+  document.getElementById('download-csv').onclick = () => downloadCsv(filtered);
+}
+
+function downloadCsv(rows) {
+  const head = ['waktu', 'node', 'jenis', 'soil_1_persen', 'soil_2_persen', 'temp_1_c', 'temp_2_c', 'catatan'];
+  const lines = [head.join(',')].concat(rows.map(r => [
+    new Date(r.ts * 1000).toISOString(), r.node, r.kind,
+    r.s1 ?? '', r.s2 ?? '', r.t1 ?? '', r.t2 ?? '', (r.note || '').replace(/&middot;/g, '-'),
+  ].join(',')));
+  const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `irigasi_${dFilters.node}_${dFilters.rangeHours}jam.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+loadNodes();
+setInterval(loadNodes, 4000);
+</script>
+</body>
+</html>

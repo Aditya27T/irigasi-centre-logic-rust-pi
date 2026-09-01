@@ -221,6 +221,24 @@ Desain di Fase A–C sudah menyiapkan seam berikut tanpa perlu dibangun sekarang
 - `--features dashboard` menjaga binary MVP tetap ramping sampai benar-benar perlu dashboard lengkap
 - Update dokumen proposal (roadmap item 19) — item non-teknis, tugas terpisah untuk sisi penulisan, bukan dependency arsitektur.
 
+### 8.1 Dashboard + API — sudah diimplementasi
+
+`--features dashboard` sekarang benar-benar berisi kode (sebelumnya cuma dependency kosong). Desain kunci:
+- **Tidak share `Twin` in-memory** — dashboard baca langsung dari tabel `twin_state` (sudah live-updated tiap event oleh loop MQTT) lewat **koneksi SQLite kedua** (`storage::db::open` dipanggil lagi). `storage/db.rs` sekarang set `PRAGMA journal_mode=WAL` + `busy_timeout=5000` supaya 2 connection ini tidak `SQLITE_BUSY`.
+- **HTML di-embed ke binary** (`include_str!`) — `static/index.html` tidak perlu di-scp ke Pi, deploy tetap 1 binary + 1 config.toml. `tower-http` dihapus dari `Cargo.toml` (tidak kepakai).
+- Endpoint: `GET /api/nodes` (snapshot semua node), `GET /api/nodes/:id/config` (threshold, read-only — sengaja tidak expose `MqttConfig`/credential), `GET /api/nodes/:id/readings|decisions?limit=` (riwayat), `POST /api/nodes/:id/command` (override manual — publish MQTT + catat ke `decisions` dengan `reason="manual_override"` + update optimistic `twin_state`).
+- **Tanpa autentikasi** (keputusan sadar — LAN-only, sama seperti asumsi trust MQTT `allow_anonymous`).
+- Config baru `[dashboard]` (`enabled`, `bind_addr`) di `config/default.toml` & `deploy/config.pi.toml`.
+- Cross-compile Pi sekarang pakai `cargo build --release --features dashboard --target aarch64-unknown-linux-gnu`.
+- Live di Pi: `http://192.168.2.119:8080/`.
+
+**Redesign tampilan** (referensi visual dari mockup Claude Design Canvas, dibangun ulang sebagai vanilla JS tanpa CDN/runtime proprietary): 2 tab ("Kontrol & Pantau" + "Data & Unduh"), kartu KPI, kartu per-node (bar kelembapan+threshold, valve toggle dengan durasi 60s/2mnt/5mnt), badge Otomatis/Manual per valve, tombol "Lepas ke Otomatis", tabel riwayat dengan filter node/jenis/rentang + export CSV client-side. Penambahan untuk mendukung ini:
+- `NodeConfig.zone: Option<String>` (label plot, mis. "Zona A") di `config.rs` + config files.
+- `twin_state` dapat 4 kolom baru: `valve_{1,2}_source` ('auto'/'manual'), `valve_{1,2}_expires_at` (epoch, dipakai hitung sisa waktu di frontend). Migrasi kolom untuk DB lama ditangani `storage::db::migrate_twin_state_columns` (cek `pragma_table_info` dulu — SQLite tidak punya `ADD COLUMN IF NOT EXISTS`).
+- Endpoint baru `POST /api/nodes/:id/valves/:valve_id/release` — lepas valve ke mode auto tanpa publish MQTT (DB-only).
+- `GET /api/nodes` sekarang selalu mengembalikan seluruh node dari config (bukan cuma yang sudah punya baris `twin_state`), plus field `online` (heuristik: `last_reading_at` dalam 30 detik terakhir).
+- Sengaja di-skip dari mockup: sparkline riwayat per-kartu (butuh N+1 fetch tambahan) dan toggle mode Otomatis/Manual global (tidak ada konsepnya di backend — tiap valve independen).
+
 ---
 
 ## Verifikasi
