@@ -1,93 +1,121 @@
-# Irigasi-Digtwin
+# Irigasi Digital Twin (irigasi-core)
 
-
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+Sistem digital twin irigasi presisi, **edge-only** (tanpa cloud): ESP32 di lahan membaca sensor tanah/suhu dan mengeksekusi valve, Raspberry Pi 3 menjalankan broker MQTT + decision engine + dashboard, semua dalam satu binary Rust (`irigasi-core`).
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/adityaeka15/irigasi-digtwin.git
-git branch -M main
-git push -uf origin main
+[ESP32 × N node] --sensor (MQTT JSON)--> [Pi: broker + irigasi-core]
+                                                │
+                                     decision engine (threshold/jadwal)
+                                                │
+       [ESP32] <--command (open/close valve)---┘
+                                                │
+                                     [Dashboard web :8080]
 ```
 
-## Integrate with your tools
+- **ESP32** ([iot.c](iot.c)): baca 2 pasang sensor (soil+suhu), publish tiap ~2 detik, eksekusi command buka/tutup 2 valve independen. ESP32 tidak mengambil keputusan sendiri — murni "tangan-kaki".
+- **Pi / `irigasi-core`** (Rust): subscribe sensor, jalankan decision engine (mode `sensor` threshold atau `schedule` jam siram), publish command, simpan histori ke SQLite, serve dashboard web (opsional, `--features dashboard`).
 
-* [Set up project integrations](https://gitlab.com/adityaeka15/irigasi-digtwin/-/settings/integrations)
+Latar belakang & rancangan lengkap ada di [brief.md](brief.md) (spesifikasi awal tim) dan [plan.md](plan.md) (log implementasi per fase, termasuk keputusan & bugfix yang sudah dilakukan).
 
-## Collaborate with your team
+## Struktur repo
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+```
+irigasi/
+├── src/                  # source Rust (irigasi-core)
+├── iot.c                 # firmware ESP32 (Arduino)
+├── config/default.toml   # config untuk dev lokal (laptop)
+├── deploy/
+│   ├── config.pi.toml    # config untuk Raspberry Pi (broker, node, threshold)
+│   ├── irigasi.service   # unit systemd
+│   ├── pi-setup.sh       # bootstrap sekali di Pi baru
+│   ├── deploy.sh         # ambil binary terbaru dari GitLab CI + restart service
+│   └── .ssh/             # (gitignored) key SSH khusus deploy, generate sendiri kalau perlu
+├── .gitlab-ci.yml        # CI: cross-compile aarch64 tiap push ke main/MR
+└── plan.md               # dokumentasi desain & histori perubahan
+```
 
-## Test and Deploy
+## Development lokal
 
-Use the built-in continuous integration in GitLab.
+Butuh Rust stable (`rustup`) dan (opsional) Mosquitto lokal untuk uji coba tanpa hardware:
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+```bash
+brew install mosquitto   # macOS, kalau mau tes tanpa broker cloud/Pi
+cargo build                              # build biasa
+cargo build --features dashboard         # sertakan dashboard web
+cargo test                               # unit test decision engine, dll.
+cargo run --features dashboard           # jalan pakai config/default.toml
+```
 
-***
+Dashboard (kalau `--features dashboard` & `[dashboard].enabled = true` di config) akan hidup di `http://localhost:8080/`.
 
-# Editing this README
+## Deploy ke Raspberry Pi
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+CI GitLab (`.gitlab-ci.yml`) otomatis cross-compile binary `aarch64-unknown-linux-gnu` (dengan `--features dashboard`) setiap push ke `main`. Untuk memasangnya ke Pi, ikuti salah satu:
 
-## Suggestions for a good README
+### A. Pi yang sudah pernah di-setup (update rutin)
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Cukup jalankan `deploy.sh` yang sudah ada di Pi:
 
-## Name
-Choose a self-explaining name for your project.
+```bash
+ssh irigasi@<ip-pi>
+cd ~/deploy-staging   # atau lokasi lain tempat deploy.sh disimpan
+./deploy.sh
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Script ini otomatis ambil artifact terbaru dari branch `main`, backup binary lama, pasang binary baru, dan restart `irigasi.service`.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### B. Pi baru diinstall dari nol
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+1. **Flash & boot Pi** — pakai Raspberry Pi Imager, aktifkan SSH + WiFi saat flashing (atau `raspi-config` manual). Pastikan ada user `irigasi` (sesuai `deploy/irigasi.service`, `User=irigasi`).
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+2. **(Opsional) pasang SSH key deploy** supaya langkah berikutnya tidak perlu ketik password tiap kali. Kalau belum ada key-nya, generate dulu di laptop:
+   ```bash
+   ssh-keygen -t ed25519 -f deploy/.ssh/irigasi_pi -C irigasi-deploy -N ""
+   ```
+   Lalu pasang ke Pi:
+   ```bash
+   ssh-copy-id -i deploy/.ssh/irigasi_pi.pub irigasi@<ip-pi>
+   ```
+   (Folder `deploy/.ssh/` sudah di-`.gitignore`, jadi private key ini **tidak ikut ter-clone** — tiap orang generate sendiri atau minta dikirim terpisah, bukan lewat git.)
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+3. **Clone repo ini** (kalau belum) lalu salin folder `deploy/` ke Pi:
+   ```bash
+   git clone git@gitlab.com:adityaeka15/irigasi-digtwin.git
+   cd irigasi-digtwin
+   scp -r deploy irigasi@<ip-pi>:~/deploy-staging
+   ```
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+4. **Jalankan setup dasar** di Pi:
+   ```bash
+   ssh irigasi@<ip-pi>
+   cd ~/deploy-staging
+   ./pi-setup.sh
+   ```
+   Ini akan: install `mosquitto` + `mosquitto-clients` + `unzip` + `curl`, siapkan `/home/irigasi/app/{,data}`, pasang `config.toml` (dari `config.pi.toml` — cek dulu isinya, terutama broker MQTT & threshold node, sesuaikan kalau beda dari setup Anda), serta pasang & enable `irigasi.service` ke systemd (belum start — binary belum ada).
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+5. **Buat GitLab Project Access Token** (sekali per Pi, harus manual lewat web GitLab — tidak bisa di-CLI-kan): buka project ini di GitLab → **Settings → Access Tokens** → buat token baru dengan scope **`read_api`**, role minimal **Reporter**. Simpan tokennya di Pi:
+   ```bash
+   echo '<token-dari-gitlab>' > ~/.irigasi-deploy-token
+   chmod 600 ~/.irigasi-deploy-token
+   ```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+6. **Ambil & jalankan binary pertama kali**:
+   ```bash
+   ~/deploy-staging/deploy.sh
+   ```
+   Kalau sukses, script akan print versi/git-SHA binary yang barusan terpasang dan konfirmasi `irigasi.service` aktif.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+7. **Verifikasi**:
+   ```bash
+   systemctl status irigasi.service
+   journalctl -u irigasi.service -f     # harus ada log "Terhubung ke MQTT broker..." & "Dashboard HTTP aktif..."
+   ```
+   Buka `http://<ip-pi>:8080/` dari browser (harus 1 jaringan WiFi/LAN yang sama dengan Pi & ESP32).
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+8. **Update selanjutnya** cukup ulangi langkah 6 (`./deploy.sh`) setiap habis pipeline GitLab sukses — tidak perlu ulang langkah 1–5.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### Catatan penting
 
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+- **ESP32 & Pi wajib satu jaringan WiFi** yang sama dengan yang di-hardcode di [iot.c](iot.c) (`ssid`/`password`) — kalau ganti WiFi, firmware ESP32 perlu di-flash ulang dengan SSID baru.
+- **IP Pi bisa berubah** (DHCP) — cek ulang lewat `hostname -I` di Pi atau daftar client di router kalau dashboard tiba-tiba tidak bisa diakses.
+- `deploy/config.pi.toml` berisi kredensial broker MQTT — hati-hati kalau mau ganti ke broker lain, jangan commit kredensial baru tanpa didiskusikan dulu ke tim.

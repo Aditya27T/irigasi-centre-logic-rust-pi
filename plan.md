@@ -201,13 +201,27 @@ Engine event-driven (dipicu tiap sensor reading masuk, bukan polling — termasu
    (`rusqlite` feature `bundled` tetap compile lancar lewat `cc`-rs + linker di atas.) Pin image `rust:1.95` biar sama dengan rustc lokal.
 3. Verifikasi artifact CI = build manual (brief step 12): tambah `--version` (embed git SHA via `build.rs`), bandingkan output binary hasil CI vs hasil `cross build` lokal, smoke-test keduanya lawan Mosquitto lokal (ulang step Fase A #4).
 
-## 7. Fase C — Deploy Otomatis (opsional, setelah A–B stabil)
+## 7. Fase C — Deploy Otomatis — sudah diimplementasi (2026-09-07)
 
 Ikuti rekomendasi brief sendiri: **manual pull dulu**, bukan self-hosted runner.
 
-1. Script `/home/irigasi/app/deploy.sh` di Pi: `curl` artifact terbaru dari GitLab job-artifact URL (pakai project Access Token scope `read_api`, disimpan di `~/.irigasi-deploy-token`, chmod 600 — bukan token pribadi, sesuai prinsip brief step 14), `install` ke `/home/irigasi/app/irigasi-core`, `systemctl restart irigasi.service`.
+1. `deploy/deploy.sh` (jalan di Pi): `curl` artifact terbaru dari GitLab job-artifact URL (`GET /projects/:id/jobs/artifacts/:ref/download?job=build`, header `PRIVATE-TOKEN`) pakai project Access Token scope `read_api` disimpan di `~/.irigasi-deploy-token` (chmod 600 — bukan token pribadi, sesuai prinsip brief step 14), extract binary dari zip, backup binary lama (`irigasi-core.bak-<timestamp>`, disimpan cuma 3 terakhir), `install -m 755` ke `/home/irigasi/app/irigasi-core`, `systemctl restart irigasi.service`, print `--version` (git SHA via `build.rs`) untuk verifikasi.
 2. Jalankan manual via SSH setiap habis pipeline sukses. Baru pertimbangkan cron/otomatisasi lebih lanjut kalau proses manual mulai terasa merepotkan (sesuai brief).
 3. **Alternatif terdokumentasi untuk nanti**: self-hosted GitLab Runner di LAN Pi (tag `local-pi-network`) + SSH key khusus CI (`gitlab-ci-deploy`, idealnya dibatasi `command=` di `authorized_keys` agar hanya bisa jalankan `deploy.sh`) — ini jalur upgrade kalau frekuensi push naik.
+4. **Perbaikan sekaligus**: `.gitlab-ci.yml` sebelumnya build **tanpa** `--features dashboard` — artifact CI tidak pernah sama dengan binary yang sebenarnya jalan di Pi (yang selalu di-cross-compile manual dengan flag itu). Sekarang disamakan.
+
+### 7.1 Runbook: Pi baru diinstall dari nol
+
+Urutan lengkap dari Raspberry Pi OS Lite (64-bit) baru sampai service jalan:
+
+1. **Flash & boot Pi** — Raspberry Pi Imager, aktifkan SSH + WiFi di step imager (atau `raspi-config` manual), user `irigasi` sesuai `deploy/irigasi.service` (`User=irigasi`).
+2. **(Opsional tapi disarankan) pasang key deploy** supaya langkah berikutnya tidak perlu password tiap kali: `ssh-copy-id -i deploy/.ssh/irigasi_pi.pub irigasi@<ip-pi>` dari laptop dev (private key `deploy/.ssh/irigasi_pi` sengaja `.gitignore`d, jangan pernah commit).
+3. **Salin folder deploy/ ke Pi**: `scp -r deploy irigasi@<ip-pi>:~/deploy-staging` (isinya `pi-setup.sh`, `deploy.sh`, `irigasi.service`, `config.pi.toml`).
+4. **Jalankan setup dasar** (SSH ke Pi): `cd ~/deploy-staging && ./pi-setup.sh` — install `mosquitto`+`mosquitto-clients`+`unzip`+`curl`, siapkan `/home/irigasi/app/{,data}`, pasang `config.toml` (dari `config.pi.toml`, tidak menimpa kalau sudah ada), pasang & enable `irigasi.service` (belum di-start — binary belum ada).
+5. **Buat token deploy** (sekali per Pi, manual lewat web GitLab — tidak bisa diotomasi dari CLI): GitLab project → Settings → Access Tokens → scope `read_api`, role Reporter. Simpan di Pi: `echo '<token>' > ~/.irigasi-deploy-token && chmod 600 ~/.irigasi-deploy-token`.
+6. **Ambil & jalankan binary terbaru**: `~/deploy-staging/deploy.sh` — pull artifact job `build` dari branch `main`, pasang, restart service, print git SHA untuk verifikasi.
+7. **Verifikasi**: `systemctl status irigasi.service`, `journalctl -u irigasi.service -f` (lihat log "Terhubung ke MQTT broker..." & "Dashboard HTTP aktif..."), buka `http://<ip-pi>:8080/` dari browser di LAN yang sama.
+8. **Update berikutnya** cukup ulangi step 6 (`./deploy.sh`) setiap habis pipeline GitLab sukses — tidak perlu ulang step 1-5.
 
 ## 8. Fase D — Landasan untuk Scale-Up (bangun sekarang, manfaatkan nanti)
 
