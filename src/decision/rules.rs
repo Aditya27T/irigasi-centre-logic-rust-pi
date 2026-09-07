@@ -58,6 +58,18 @@ impl DecisionOutcome {
             threshold_used: None,
         }
     }
+
+    fn manual_hold(valve_id: u8, soil_pct: f32, temp_c: f32) -> Self {
+        Self {
+            valve_id,
+            action: Action::None,
+            duration_s: None,
+            reason: "manual_hold",
+            trigger_soil_moisture_pct: soil_pct,
+            trigger_temp_c: temp_c,
+            threshold_used: None,
+        }
+    }
 }
 
 /// Evaluasi 2 valve independen per node -- valve 1 dari pasangan sensor 1,
@@ -69,23 +81,42 @@ pub fn evaluate(
     now: NaiveTime,
 ) -> Vec<DecisionOutcome> {
     vec![
-        evaluate_valve(
+        evaluate_valve_guarded(
             1,
             reading.soil_moisture_1_pct,
             reading.temp_1_c,
             &node_cfg.valve_1,
             twin.valve_1_open,
+            &twin.valve_1_source,
             now,
         ),
-        evaluate_valve(
+        evaluate_valve_guarded(
             2,
             reading.soil_moisture_2_pct,
             reading.temp_2_c,
             &node_cfg.valve_2,
             twin.valve_2_open,
+            &twin.valve_2_source,
             now,
         ),
     ]
+}
+
+/// Valve yang sedang di-override manual dari dashboard tidak dievaluasi decision
+/// engine sampai dilepas lagi ke "auto" lewat tombol "Lepas ke Otomatis".
+fn evaluate_valve_guarded(
+    valve_id: u8,
+    soil_pct: f32,
+    temp_c: f32,
+    cfg: &ValveConfig,
+    is_open: bool,
+    source: &str,
+    now: NaiveTime,
+) -> DecisionOutcome {
+    if source == "manual" {
+        return DecisionOutcome::manual_hold(valve_id, soil_pct, temp_c);
+    }
+    evaluate_valve(valve_id, soil_pct, temp_c, cfg, is_open, now)
 }
 
 fn evaluate_valve(
@@ -239,5 +270,22 @@ mod tests {
         }]);
         let outcome = evaluate_valve(2, 30.0, 20.0, &cfg, false, t("12:00"));
         assert_eq!(outcome.action, Action::None);
+    }
+
+    #[test]
+    fn manual_source_holds_decision_engine_even_when_open_condition_met() {
+        let cfg = sensor_cfg();
+        // Kondisi ini biasanya memicu Open (panas & kering), tapi source "manual"
+        // harus menahan engine sampai dilepas lewat tombol "Lepas ke Otomatis".
+        let outcome = evaluate_valve_guarded(1, 30.0, 28.0, &cfg, false, "manual", t("10:00"));
+        assert_eq!(outcome.action, Action::None);
+        assert_eq!(outcome.reason, "manual_hold");
+    }
+
+    #[test]
+    fn auto_source_evaluates_normally() {
+        let cfg = sensor_cfg();
+        let outcome = evaluate_valve_guarded(1, 30.0, 28.0, &cfg, false, "auto", t("10:00"));
+        assert_eq!(outcome.action, Action::Open);
     }
 }

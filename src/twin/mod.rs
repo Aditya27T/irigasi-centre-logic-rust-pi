@@ -55,6 +55,14 @@ impl Twin {
         state.last_temp_1_c = Some(reading.temp_1_c);
         state.last_temp_2_c = Some(reading.temp_2_c);
         state.last_reading_at = Some(received_at);
+        // Status ON/OFF valve mengikuti relay fisik yang dilaporkan ESP32 (ground
+        // truth), terlepas dari source "auto"/"manual" -- lihat plan.md §2.
+        if let Some(open) = reading.relay_1_open() {
+            state.valve_1_open = open;
+        }
+        if let Some(open) = reading.relay_2_open() {
+            state.valve_2_open = open;
+        }
         water_balance::accumulate(state, reading);
     }
 
@@ -81,6 +89,23 @@ impl Twin {
                 state.valve_2_open = open;
                 state.valve_2_source = source.to_string();
                 state.valve_2_expires_at = expires_at;
+            }
+            _ => {}
+        }
+    }
+
+    /// Lepas valve dari mode "manual" kembali ke "auto" tanpa mengubah status
+    /// buka/tutup -- dipakai tombol "Lepas ke Otomatis" di dashboard.
+    pub fn release_to_auto(&mut self, device_id: &str, valve_id: u8) {
+        let state = self.zones.entry(device_id.to_string()).or_default();
+        match valve_id {
+            1 => {
+                state.valve_1_source = "auto".to_string();
+                state.valve_1_expires_at = None;
+            }
+            2 => {
+                state.valve_2_source = "auto".to_string();
+                state.valve_2_expires_at = None;
             }
             _ => {}
         }

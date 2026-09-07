@@ -2,95 +2,232 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Irigasi Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --accent: #2f6b4f;
-    --amber: #b5761f;
-    --red: #a33a2c;
-    --muted: #6b7570;
-    --bg: #f2f1ec;
-    --card: #ffffff;
-    --border: #e9e7df;
-    --border-strong: #ddd9cf;
-    --ink: #14181a;
+    --accent: #3b7f57;
+    --accent-hover: #286342;
+    --amber: #b7791f;
+    --amber-hover: #925d16;
+    --red: #c75b57;
+    --muted: #5e7063;
+    --muted-light: #87968a;
+    --bg: #f3f8f2;
+    --card: #fffefa;
+    --border: #dbe8dc;
+    --border-strong: #c4d7c6;
+    --ink: #203529;
+    --shadow-sm: 0 1px 2px 0 rgba(34, 73, 46, 0.06);
+    --shadow-md: 0 8px 18px -8px rgba(34, 73, 46, 0.18), 0 3px 6px -3px rgba(34, 73, 46, 0.08);
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    
+    --toggle-brand: #438b61;
+    --toggle-brand-light: #eef8ef;
+    --toggle-bg-off: #d9e6da;
   }
+  
   * { box-sizing: border-box; }
+  
   body {
     margin: 0;
     background: var(--bg);
     color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     padding: 20px;
+    line-height: 1.5;
   }
-  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
-  .topbar h1 { font-size: 1.3rem; margin: 0; }
-  .clock { font-family: ui-monospace, "IBM Plex Mono", monospace; color: var(--muted); font-size: 0.9rem; }
-  .tabs { display: inline-flex; background: var(--border); border-radius: 8px; padding: 3px; gap: 2px; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  section { animation: fadeIn 0.4s ease-out forwards; }
+
+  /* Topbar */
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+  .topbar h1 { font-size: 1.5rem; margin: 0; font-weight: 700; letter-spacing: -0.02em; }
+  .clock { font-family: ui-monospace, monospace; color: var(--muted); font-size: 0.9rem; font-weight: 600; background: var(--card); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); }
+  
+  .tabs { display: inline-flex; background: #e3efe4; border-radius: var(--radius-md); padding: 4px; gap: 2px; }
   .tabs button {
-    border: none; background: transparent; padding: 6px 14px; border-radius: 6px;
-    font-size: 0.85rem; cursor: pointer; color: var(--muted);
+    border: none; background: transparent; padding: 8px 16px; border-radius: var(--radius-sm);
+    font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--muted); transition: all 0.3s ease;
   }
-  .tabs button.active { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .tabs button:hover { color: var(--ink); }
+  .tabs button.active { background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); }
 
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px; }
-  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-  .kpi .label { font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
-  .kpi .value { font-size: 1.5rem; font-weight: 600; }
-  .kpi .sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  /* KPI Cards */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .kpi { 
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); 
+    padding: 20px; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .kpi .label { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .kpi .value { font-size: 2rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .sub { font-size: 0.8rem; color: var(--muted); margin-top: 6px; font-weight: 500; }
 
-  .nodes { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
-  .node-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .node-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 16px; border-bottom: 1px solid var(--border); }
-  .node-head .zone { font-size: 0.78rem; color: var(--muted); }
-  .node-head .device { font-size: 1.05rem; font-weight: 600; }
-  .status-badge { font-size: 0.72rem; font-weight: 600; padding: 3px 9px; border-radius: 10px; white-space: nowrap; }
-  .node-body { padding: 14px 16px; }
-  .soil-row { margin-bottom: 10px; }
-  .soil-row .top { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
-  .soil-row .top .verdict { font-weight: 600; }
-  .bar-track { background: #eceae2; border-radius: 6px; height: 8px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 6px; }
-  .metrics { display: flex; gap: 14px; margin: 12px 0; font-size: 0.8rem; color: var(--muted); flex-wrap: wrap; }
-  .metrics b { color: var(--ink); font-weight: 600; }
+  /* Node Cards */
+  .nodes { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+  .node-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+  
+  .node-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 18px 20px; background: var(--card); border-bottom: 1px solid var(--border); }
+  .node-head .zone { font-size: 0.75rem; font-weight: 700; color: var(--muted-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .node-head .device { font-size: 1.25rem; font-weight: 800; color: var(--ink); }
+  .status-badge { font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 20px; white-space: nowrap; display: inline-block; }
+  
+  .node-body { padding: 20px; background: #f7fbf6; }
+  
+  /* Soil Progress */
+  .soil-row { margin-bottom: 16px; }
+  .soil-row .top { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 8px; font-weight: 600; color: var(--ink); }
+  .soil-row .top .verdict { font-weight: 700; }
+  .bar-track { background: #dfeade; border-radius: 10px; height: 10px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(34,73,46,0.06); }
+  .bar-fill { height: 100%; border-radius: 10px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s; }
+  
+  /* Metrics Grid */
+  .metrics { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 12px; 
+    margin: 20px 0; 
+    font-size: 0.8rem; 
+    color: var(--muted); 
+    background: var(--card); 
+    padding: 16px; 
+    border-radius: var(--radius-md); 
+    border: 1px solid var(--border);
+  }
+  .metrics span { display: flex; flex-direction: column; gap: 4px; font-weight: 500; }
+  .metrics b { color: var(--ink); font-weight: 800; font-size: 1.1rem; }
 
-  .valve-row { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
-  .valve-row .line1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .valve-row .state { font-size: 0.82rem; font-weight: 600; }
-  .valve-row .badge { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 8px; }
-  .valve-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  /* Valve Controls (Improved Layout) */
+  .valve-row { 
+    border: 1px solid var(--border); 
+    border-radius: var(--radius-md); 
+    padding: 18px; 
+    margin-top: 16px; 
+    background: var(--card); 
+    transition: all 0.3s ease;
+  }
+  
+  /* Visual Cue for Active Valve */
+  .valve-row.is-open {
+    border-color: rgba(67, 139, 97, 0.45);
+    background: var(--toggle-brand-light);
+    box-shadow: 0 4px 12px rgba(67, 139, 97, 0.12);
+  }
+
+  .valve-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .valve-title { display: flex; flex-direction: column; gap: 4px; }
+  .valve-name { font-size: 1.1rem; font-weight: 800; color: var(--ink); }
+  .valve-status { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+  .valve-status.active { color: var(--toggle-brand); }
+  
+  .valve-badges { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .badge { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  
+  .toggle-group { display: flex; align-items: center; gap: 10px; background: var(--card); padding: 6px 10px; border-radius: 30px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+  .toggle-label { font-size: 0.8rem; font-weight: 800; min-width: 28px; text-align: right; transition: color 0.3s; }
+  
+  /* Buttons */
+  .controls-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 16px; }
+  
+  button { font-family: inherit; }
   .dur-chip, .act-btn, .chip {
-    border: 1px solid var(--border-strong); background: #fff; color: #4a534e;
-    padding: 4px 9px; border-radius: 6px; font-size: 0.76rem; cursor: pointer;
+    border: 1px solid var(--border-strong); background: var(--card); color: var(--ink); padding: 8px 14px; 
+    border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; justify-content: center; min-height: 38px; box-shadow: var(--shadow-sm);
   }
-  .dur-chip.on { background: var(--ink); color: #f2f1ec; border-color: var(--ink); }
-  .act-btn.open { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .act-btn.close { background: #fff; }
-  .act-btn.release { background: #fff; color: var(--amber); border-color: var(--amber); }
+  .dur-chip:hover, .act-btn:hover, .chip:hover { border-color: var(--accent); background: #f1f8f1; }
+  .dur-chip:active, .act-btn:active, .chip:active { transform: scale(0.96); }
+  
+  /* Active Duration Chip uses dark ink instead of accent to avoid clashing with the toggle */
+  .dur-chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .dur-chip.on:hover { background: #31513b; }
+  
+  .act-btn.release { background: var(--card); color: var(--amber); border-color: var(--amber); }
+  .act-btn.release:hover { background: #fff8e7; }
 
-  h2 { font-size: 1rem; margin: 22px 0 10px; }
-  .filters { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
-  .filter-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-  .filter-group span.label { font-size: 0.78rem; color: var(--muted); margin-right: 2px; }
-  .chip.on { background: var(--ink); color: #f2f1ec; border-color: var(--ink); }
+  /* --- Toggle Switch (Sesuai Referensi Gambar) --- */
+  .toggle-switch {
+    position: relative;
+    width: 60px;
+    height: 34px;
+    border-radius: 34px;
+    background: var(--toggle-bg-off);
+    border: none;
+    cursor: pointer;
+    outline: none;
+    transition: background 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    display: inline-block;
+    flex-shrink: 0;
+    padding: 0;
+  }
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--toggle-brand);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+  }
+  .toggle-switch.on {
+    background: var(--toggle-brand);
+    box-shadow: none;
+  }
+  .toggle-switch.on::after {
+    transform: translateX(24px);
+    background: var(--card);
+  }
 
-  .stats { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; font-size: 0.82rem; color: var(--muted); }
-  .stats b { color: var(--ink); }
+  /* Data Page Styles */
+  h2 { font-size: 1.2rem; margin: 24px 0 16px; font-weight: 700; }
+  .filters { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+  .filter-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .filter-group span.label { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-right: 4px; }
+  .chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
 
-  table { border-collapse: collapse; width: 100%; background: var(--card); font-size: 0.82rem; }
-  th, td { border-bottom: 1px solid var(--border); padding: 8px 10px; text-align: left; white-space: nowrap; }
-  th { background: #faf9f5; font-size: 0.75rem; color: var(--muted); font-weight: 600; }
-  .table-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+  .stats { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 16px; font-size: 0.9rem; color: var(--muted); background: var(--card); padding: 16px 20px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+  .stats b { color: var(--ink); font-weight: 800; }
+
+  table { border-collapse: separate; border-spacing: 0; width: 100%; background: var(--card); font-size: 0.85rem; }
+  th, td { border-bottom: 1px solid var(--border); padding: 14px 16px; text-align: left; white-space: nowrap; }
+  th { background: #f1f7f1; font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; top: 0; z-index: 10; border-top: 1px solid var(--border); }
+  tr:hover td { background: #eef7ee; }
+  .table-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+  
   .muted { color: var(--muted); }
-  .download-btn { margin-top: 10px; }
+  .download-btn { margin-top: 16px; background: var(--ink); color: white; border: none; padding: 10px 20px; font-size: 0.9rem; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; }
+  .download-btn:hover { background: #31513b; }
+  
   [hidden] { display: none !important; }
+
+  @media (max-width: 600px) {
+    .topbar { flex-direction: column; align-items: flex-start; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metrics span:last-child { grid-column: span 2; }
+    .controls-footer { flex-direction: column; align-items: stretch; }
+    .controls-footer .dur-wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+    .controls-footer .act-btn { width: 100%; }
+  }
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <h1>Irigasi Dashboard</h1>
-  <div style="display:flex; align-items:center; gap:14px;">
+  <div style="display:flex; align-items:center; gap:16px; flex-wrap: wrap;">
     <span class="clock" id="clock"></span>
     <div class="tabs">
       <button data-page="control" class="active">Kontrol &amp; Pantau</button>
@@ -106,47 +243,91 @@
 
 <section id="page-data" hidden>
   <div class="filters">
-    <div class="filter-group">
-      <span class="label">Node:</span>
-      <span id="filter-node"></span>
-    </div>
-    <div class="filter-group">
-      <span class="label">Jenis:</span>
-      <span id="filter-kind"></span>
-    </div>
-    <div class="filter-group">
-      <span class="label">Rentang:</span>
-      <span id="filter-range"></span>
-    </div>
+    <div class="filter-group"><span class="label">Node:</span><span id="filter-node"></span></div>
+    <div class="filter-group"><span class="label">Jenis:</span><span id="filter-kind"></span></div>
+    <div class="filter-group"><span class="label">Rentang:</span><span id="filter-range"></span></div>
   </div>
   <div class="stats" id="data-stats"></div>
   <div class="table-wrap">
     <table>
-      <thead>
-        <tr><th>Waktu</th><th>Node</th><th>Jenis</th><th>Soil 1</th><th>Soil 2</th><th>Temp 1</th><th>Temp 2</th><th>Catatan</th></tr>
-      </thead>
+      <thead><tr><th>Waktu</th><th>Node</th><th>Jenis</th><th>Soil 1</th><th>Soil 2</th><th>Temp 1</th><th>Temp 2</th><th>Catatan</th></tr></thead>
       <tbody id="data-rows"></tbody>
     </table>
   </div>
-  <button class="chip download-btn" id="download-csv">Unduh CSV</button>
+  <button class="download-btn" id="download-csv">Unduh CSV</button>
 </section>
 
 <script>
 const REASON_TEXT = {
-  soil_moisture_below_threshold: 'kelembapan di bawah ambang',
-  close_condition_met: 'syarat tutup terpenuhi',
-  no_trigger: 'tidak ada pemicu',
-  manual_override: 'override operator',
-  scheduled_window: 'jadwal terjadwal',
+  soil_moisture_below_threshold: 'Kelembapan di bawah ambang',
+  close_condition_met: 'Syarat tutup terpenuhi',
+  no_trigger: 'Tidak ada pemicu',
+  manual_override: 'Override operator',
+  scheduled_window: 'Jadwal terjadwal',
 };
 
 let nodeConfigs = {};
 let dFilters = { node: 'Semua', kind: 'Semua', rangeHours: 24 };
 let dataRows = [];
+let weatherState = null; // diisi loadWeather(), dibaca renderKpis() setiap tick 4s tanpa fetch ulang
+
+// Lokasi: Malang, Jawa Timur -- sesuaikan lat/lon di sini kalau lahan pindah kota.
+const WEATHER_LAT = -7.9666;
+const WEATHER_LON = 112.6326;
+const WEATHER_REFRESH_MS = 15 * 60 * 1000; // cuaca tidak perlu se-real-time data sensor
+
+const WEATHER_CODES = {
+  0: { icon: '☀️', label: 'Cerah' },
+  1: { icon: '🌤️', label: 'Cerah Berawan' },
+  2: { icon: '⛅', label: 'Berawan Sebagian' },
+  3: { icon: '☁️', label: 'Mendung' },
+  45: { icon: '🌫️', label: 'Berkabut' },
+  48: { icon: '🌫️', label: 'Berkabut' },
+  51: { icon: '🌦️', label: 'Gerimis Ringan' },
+  53: { icon: '🌦️', label: 'Gerimis' },
+  55: { icon: '🌦️', label: 'Gerimis Lebat' },
+  56: { icon: '🌧️', label: 'Gerimis Beku' },
+  57: { icon: '🌧️', label: 'Gerimis Beku' },
+  61: { icon: '🌧️', label: 'Hujan Ringan' },
+  63: { icon: '🌧️', label: 'Hujan' },
+  65: { icon: '🌧️', label: 'Hujan Lebat' },
+  66: { icon: '🌧️', label: 'Hujan Beku' },
+  67: { icon: '🌧️', label: 'Hujan Beku' },
+  71: { icon: '🌨️', label: 'Salju Ringan' },
+  73: { icon: '🌨️', label: 'Salju' },
+  75: { icon: '🌨️', label: 'Salju Lebat' },
+  77: { icon: '🌨️', label: 'Butiran Salju' },
+  80: { icon: '🌧️', label: 'Hujan Lokal' },
+  81: { icon: '🌧️', label: 'Hujan Lokal Lebat' },
+  82: { icon: '⛈️', label: 'Hujan Sangat Lebat' },
+  85: { icon: '🌨️', label: 'Hujan Salju' },
+  86: { icon: '🌨️', label: 'Hujan Salju Lebat' },
+  95: { icon: '⛈️', label: 'Badai Petir' },
+  96: { icon: '⛈️', label: 'Badai Petir + Es' },
+  99: { icon: '⛈️', label: 'Badai Petir + Es' },
+};
+function weatherInfo(code) {
+  return WEATHER_CODES[code] || { icon: '🌡️', label: 'Tidak diketahui' };
+}
+
+async function loadWeather() {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LAT}&longitude=${WEATHER_LON}` +
+      `&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&timezone=Asia%2FJakarta`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    weatherState = { ok: true, ...data.current };
+  } catch (e) {
+    weatherState = { ok: false };
+  }
+  renderKpis(lastNodesForKpi);
+}
+let lastNodesForKpi = [];
 
 function fmtTime(epochSeconds) {
   if (epochSeconds == null) return '-';
-  return new Date(epochSeconds * 1000).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return new Date(epochSeconds * 1000).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 function fmtNum(n, digits) {
   return (n == null) ? '-' : Number(n).toFixed(digits ?? 1);
@@ -156,12 +337,33 @@ function mmss(sec) {
   const m = Math.floor(sec / 60), r = sec % 60;
   return m + ':' + String(r).padStart(2, '0');
 }
-function reasonLabel(reason) {
-  return REASON_TEXT[reason] || reason || '-';
-}
-function soilThreshold(cfg, valveNum) {
+function reasonLabel(reason) { return REASON_TEXT[reason] || reason || '-'; }
+
+function valveModeInfo(cfg, valveNum) {
   const v = cfg && cfg['valve_' + valveNum];
-  return (v && v.mode === 'sensor') ? v.open_soil_max_pct : null;
+  if (!v) return { mode: 'sensor', threshold: null, thresholdKind: 'open', schedule: null };
+  if (v.mode === 'schedule') {
+    return { mode: 'schedule', threshold: v.close_soil_min_pct, thresholdKind: 'close', schedule: v.schedule || [] };
+  }
+  return { mode: 'sensor', threshold: v.open_soil_max_pct, thresholdKind: 'open', schedule: null };
+}
+
+function isWithinSchedule(windows) {
+  if (!windows || !windows.length) return false;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  return windows.some(w => {
+    const [sh, sm] = (w.start || '').split(':').map(Number);
+    const [eh, em] = (w.end || '').split(':').map(Number);
+    if ([sh, sm, eh, em].some(Number.isNaN)) return false;
+    const startMin = sh * 60 + sm, endMin = eh * 60 + em;
+    return nowMin >= startMin && nowMin < endMin;
+  });
+}
+
+function scheduleLabel(windows) {
+  if (!windows || !windows.length) return '';
+  return windows.map(w => `${w.start}–${w.end}`).join(', ');
 }
 
 function switchPage(page) {
@@ -172,11 +374,8 @@ function switchPage(page) {
 }
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => switchPage(b.dataset.page)));
 
-function tickClock() {
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
-setInterval(tickClock, 1000);
-tickClock();
+function tickClock() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+setInterval(tickClock, 1000); tickClock();
 
 async function ensureNodeConfigs(nodes) {
   await Promise.all(nodes.map(async n => {
@@ -184,11 +383,12 @@ async function ensureNodeConfigs(nodes) {
     try {
       const res = await fetch(`/api/nodes/${encodeURIComponent(n.device_id)}/config`);
       if (res.ok) nodeConfigs[n.device_id] = await res.json();
-    } catch (e) { /* ignore, threshold badge just won't show */ }
+    } catch (e) {}
   }));
 }
 
 function renderKpis(nodes) {
+  lastNodesForKpi = nodes;
   const onlineCount = nodes.filter(n => n.online).length;
   let openCount = 0, totalValves = 0, dryCount = 0, water = 0;
   nodes.forEach(n => {
@@ -196,63 +396,123 @@ function renderKpis(nodes) {
       totalValves++;
       if (n['valve_' + vn + '_open']) openCount++;
     });
-    const th1 = soilThreshold(nodeConfigs[n.device_id], 1);
-    const th2 = soilThreshold(nodeConfigs[n.device_id], 2);
-    const dry1 = th1 != null && n.last_soil_moisture_1_pct != null && n.last_soil_moisture_1_pct < th1;
-    const dry2 = th2 != null && n.last_soil_moisture_2_pct != null && n.last_soil_moisture_2_pct < th2;
-    if (dry1 || dry2) dryCount++;
+    const info1 = valveModeInfo(nodeConfigs[n.device_id], 1);
+    const info2 = valveModeInfo(nodeConfigs[n.device_id], 2);
+    const needs1 = info1.mode === 'sensor'
+      ? (info1.threshold != null && n.last_soil_moisture_1_pct != null && n.last_soil_moisture_1_pct < info1.threshold)
+      : isWithinSchedule(info1.schedule);
+    const needs2 = info2.mode === 'sensor'
+      ? (info2.threshold != null && n.last_soil_moisture_2_pct != null && n.last_soil_moisture_2_pct < info2.threshold)
+      : isWithinSchedule(info2.schedule);
+    if (needs1 || needs2) dryCount++;
     water += n.water_balance_mm || 0;
   });
 
   const kpis = [
-    { label: 'Node aktif', value: `${onlineCount}/${nodes.length}`, sub: onlineCount < nodes.length ? 'ada node tidak merespons' : 'semua node mengirim data' },
-    { label: 'Valve terbuka', value: `${openCount}/${totalValves}`, sub: 'penyiraman sedang berjalan' },
-    { label: 'Perlu penyiraman', value: String(dryCount), sub: 'zona di bawah ambang' },
-    { label: 'Air hari ini', value: `${water.toFixed(1)} mm`, sub: 'total seluruh zona' },
+    { label: 'Status Node', value: `${onlineCount}/${nodes.length}`, sub: onlineCount < nodes.length ? 'Ada node terputus' : 'Semua sistem online' },
+    { label: 'Valve Aktif', value: `${openCount}/${totalValves}`, sub: 'Mesin sedang berjalan' },
+    { label: 'Perlu Disiram', value: String(dryCount), sub: 'Kondisi kering / jadwal tiba' },
+    { label: 'Total Debit Air', value: `${water.toFixed(1)} mm`, sub: 'Akumulasi seluruh zona' },
   ];
   document.getElementById('kpis').innerHTML = kpis.map(k => `
     <div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>
-  `).join('');
+  `).join('') + weatherKpiHtml();
 }
 
-function valveRowHtml(node, valveNum) {
+function weatherKpiHtml() {
+  if (!weatherState) {
+    return `<div class="kpi"><div class="label">Cuaca</div><div class="value" style="font-size:1.1rem; color:var(--muted)">Memuat&hellip;</div></div>`;
+  }
+  if (!weatherState.ok) {
+    return `<div class="kpi"><div class="label">Cuaca</div><div class="value" style="font-size:1.1rem; color:var(--muted)">Tidak tersedia</div><div class="sub">Gagal ambil data weather API</div></div>`;
+  }
+  const w = weatherInfo(weatherState.weather_code);
+  const rain = weatherState.precipitation > 0;
+  return `
+    <div class="kpi">
+      <div class="label">Cuaca &middot; Malang</div>
+      <div class="value" style="display:flex; align-items:baseline; gap:8px;">
+        <span style="font-size:1.6rem; line-height:1;">${w.icon}</span>
+        <span>${fmtNum(weatherState.temperature_2m, 0)}&deg;C</span>
+      </div>
+      <div class="sub">${w.label} &middot; Lembap udara ${fmtNum(weatherState.relative_humidity_2m, 0)}%${rain ? ' &middot; <span style="color:var(--amber); font-weight:700">Hujan terdeteksi</span>' : ''}</div>
+    </div>
+  `;
+}
+
+function valveRowHtml(node, valveNum, modeInfo) {
   const open = node['valve_' + valveNum + '_open'];
   const source = node['valve_' + valveNum + '_source'];
   const expiresAt = node['valve_' + valveNum + '_expires_at'];
   const manual = source === 'manual';
   const now = Date.now() / 1000;
-  let stateLine = open ? 'TERBUKA' : 'TERTUTUP';
+  
+  let stateLine = open ? 'Mengalir' : 'Siaga (Tertutup)';
   if (open && expiresAt != null) {
     const remaining = expiresAt - now;
-    if (remaining > 0) stateLine = 'TERBUKA &middot; sisa ' + mmss(remaining);
+    if (remaining > 0) stateLine = 'Mengalir &middot; Berhenti dlm ' + mmss(remaining);
   }
+  
   const durations = [60, 120, 300];
+  const isSchedule = modeInfo && modeInfo.mode === 'schedule';
+  const scheduleText = isSchedule ? scheduleLabel(modeInfo.schedule) : '';
+  
+  // Highlight warna teks jika toggle hidup
+  const toggleTextColor = open ? 'var(--toggle-brand)' : 'var(--muted)';
+  
   return `
-    <div class="valve-row" data-device="${node.device_id}" data-valve="${valveNum}">
-      <div class="line1">
-        <span class="state" style="color:${open ? 'var(--accent)' : 'var(--muted)'}">Valve ${valveNum} &middot; ${stateLine}</span>
-        <span class="badge" style="background:${manual ? 'rgba(181,118,31,.14)' : '#eceae2'}; color:${manual ? 'var(--amber)' : 'var(--muted)'}">${manual ? 'Manual' : 'Otomatis'}</span>
+    <div class="valve-row ${open ? 'is-open' : ''}" data-device="${node.device_id}" data-valve="${valveNum}">
+      
+      <div class="valve-header">
+        <div class="valve-title">
+          <span class="valve-name">Valve ${valveNum}</span>
+          <span class="valve-status ${open ? 'active' : ''}">${stateLine}</span>
+        </div>
+        
+        <div class="toggle-group">
+          <span class="toggle-label" style="color: ${toggleTextColor};">${open ? 'ON' : 'OFF'}</span>
+          <button class="toggle-switch ${open ? 'on' : ''}" data-action="${open ? 'close' : 'open'}" title="${open ? 'Matikan Valve' : 'Nyalakan Valve'}"></button>
+        </div>
       </div>
-      <div class="valve-controls">
-        ${durations.map(d => `<button class="dur-chip" data-dur="${d}">${d < 60 ? d + 's' : (d / 60) + ' mnt'}</button>`).join('')}
-        <button class="act-btn open" data-action="open">Buka</button>
-        <button class="act-btn close" data-action="close">Tutup</button>
-        ${manual ? `<button class="act-btn release" data-action="release">Lepas ke Otomatis</button>` : ''}
+      
+      <div class="valve-badges">
+        <span class="badge" style="background:${open ? 'var(--card)' : '#eef6ee'}; color:var(--muted); border: 1px solid var(--border);">${isSchedule ? 'Mode Jadwal' : 'Mode Sensor'}</span>
+        <span class="badge" style="background:${manual ? '#fff1c9' : (open ? 'var(--card)' : '#eef6ee')}; color:${manual ? 'var(--amber)' : 'var(--muted)'}; border: 1px solid ${manual ? 'transparent' : 'var(--border)'};">${manual ? 'Manual (Ditahan)' : 'Otomatis'}</span>
       </div>
+      
+      ${scheduleText ? `<div style="margin-bottom:14px; font-size:0.85rem; color: var(--ink);">Jadwal aktif: <b>${scheduleText}</b></div>` : ''}
+      
+      <div class="controls-footer">
+        <div class="dur-wrap" style="display:flex; gap:8px;">
+          ${durations.map(d => `<button class="dur-chip" data-dur="${d}">${d < 60 ? d + ' dtk' : (d / 60) + ' mnt'}</button>`).join('')}
+        </div>
+        ${manual ? `<button class="act-btn release" data-action="release">Kembalikan ke Auto</button>` : ''}
+      </div>
+      
     </div>
   `;
 }
 
-function soilBarHtml(label, pct, threshold) {
-  const low = threshold != null && pct != null && pct < threshold;
-  const color = low ? 'var(--amber)' : 'var(--accent)';
+function soilBarHtml(label, pct, info) {
+  const threshold = info ? info.threshold : null;
+  const kind = info ? info.thresholdKind : 'open';
+  let color = 'var(--accent)';
+  let verdict = '';
+  if (threshold != null && pct != null) {
+    if (kind === 'open') {
+      const low = pct < threshold;
+      color = low ? 'var(--amber)' : 'var(--accent)';
+      verdict = low ? ' &middot; Butuh Air' : ' &middot; Ideal';
+    } else {
+      const wet = pct >= threshold;
+      color = wet ? 'var(--accent)' : 'var(--amber)';
+      verdict = wet ? ' &middot; Cukup Basah' : '';
+    }
+  }
   const width = pct == null ? 0 : Math.max(2, Math.min(100, pct));
   return `
     <div class="soil-row">
-      <div class="top">
-        <span>${label}</span>
-        <span class="verdict" style="color:${color}">${pct == null ? '-' : pct.toFixed(0) + '%'}${threshold != null ? (low ? ' &middot; Butuh air' : ' &middot; Cukup') : ''}</span>
-      </div>
+      <div class="top"><span>${label}</span><span class="verdict" style="color:${color}">${pct == null ? '-' : pct.toFixed(0) + '%'}${verdict}</span></div>
       <div class="bar-track"><div class="bar-fill" style="width:${width}%; background:${color}"></div></div>
     </div>
   `;
@@ -261,32 +521,29 @@ function soilBarHtml(label, pct, threshold) {
 function renderNodes(nodes) {
   document.getElementById('nodes').innerHTML = nodes.map(n => {
     const cfg = nodeConfigs[n.device_id];
-    const th1 = soilThreshold(cfg, 1), th2 = soilThreshold(cfg, 2);
-    const statusBg = n.online ? 'rgba(47,107,79,.12)' : 'rgba(163,58,44,.12)';
-    const statusFg = n.online ? 'var(--accent)' : 'var(--red)';
-    const statusText = n.online ? 'Terhubung' : 'Offline';
+    const info1 = valveModeInfo(cfg, 1), info2 = valveModeInfo(cfg, 2);
+    const statusBg = n.online ? '#dcefe0' : '#f8e2e0';
+    const statusFg = n.online ? 'var(--accent-hover)' : 'var(--red)';
+    const statusText = n.online ? 'Terkoneksi' : 'Offline';
     return `
       <div class="node-card">
         <div class="node-head">
-          <div>
-            <div class="zone">${n.zone || '-'}</div>
-            <div class="device">${n.device_id}</div>
-          </div>
+          <div><div class="zone">ZONA: ${n.zone || '-'}</div><div class="device">${n.device_id}</div></div>
           <div style="text-align:right">
             <span class="status-badge" style="background:${statusBg}; color:${statusFg}">${statusText}</span>
-            <div class="zone" style="margin-top:4px">${fmtTime(n.last_reading_at)}</div>
+            <div style="margin-top:8px; font-size: 0.7rem; color: var(--muted); font-weight: 600;">Terakhir: ${fmtTime(n.last_reading_at)}</div>
           </div>
         </div>
         <div class="node-body">
-          ${soilBarHtml('Kelembapan tanah 1', n.last_soil_moisture_1_pct, th1)}
-          ${soilBarHtml('Kelembapan tanah 2', n.last_soil_moisture_2_pct, th2)}
+          ${soilBarHtml('Kelembapan Tanah 1', n.last_soil_moisture_1_pct, info1)}
+          ${soilBarHtml('Kelembapan Tanah 2', n.last_soil_moisture_2_pct, info2)}
           <div class="metrics">
-            <span>Suhu 1: <b>${fmtNum(n.last_temp_1_c)}&deg;C</b></span>
-            <span>Suhu 2: <b>${fmtNum(n.last_temp_2_c)}&deg;C</b></span>
-            <span>Air hari ini: <b>${fmtNum(n.water_balance_mm)} mm</b></span>
+            <span>Suhu 1 <b>${fmtNum(n.last_temp_1_c)}&deg;C</b></span>
+            <span>Suhu 2 <b>${fmtNum(n.last_temp_2_c)}&deg;C</b></span>
+            <span>Debit Air <b>${fmtNum(n.water_balance_mm)} mm</b></span>
           </div>
-          ${valveRowHtml(n, 1)}
-          ${valveRowHtml(n, 2)}
+          ${valveRowHtml(n, 1, info1)}
+          ${valveRowHtml(n, 2, info2)}
         </div>
       </div>
     `;
@@ -300,8 +557,15 @@ document.getElementById('nodes').addEventListener('click', async (ev) => {
       .forEach(b => b.classList.toggle('on', b === durBtn));
     return;
   }
-  const actBtn = ev.target.closest('.act-btn');
+  
+  const actBtn = ev.target.closest('.act-btn, .toggle-switch');
   if (!actBtn) return;
+  
+  if (!actBtn.classList.contains('toggle-switch')) {
+    actBtn.style.transform = 'scale(0.9)';
+    setTimeout(() => actBtn.style.transform = '', 150);
+  }
+
   const row = actBtn.closest('.valve-row');
   const device = row.dataset.device, valve = row.dataset.valve;
   const action = actBtn.dataset.action;
@@ -341,14 +605,14 @@ async function loadNodes() {
 
 // ---- Halaman Data & Unduh ----
 
-function chipsHtml(values, selected, groupSetter) {
+function chipsHtml(values, selected) {
   return values.map(v => `<button class="chip ${v === selected ? 'on' : ''}" data-value="${v}">${v}</button>`).join('');
 }
 
 function renderDataFilters(nodeIds) {
   document.getElementById('filter-node').innerHTML = chipsHtml(['Semua', ...nodeIds], dFilters.node);
   document.getElementById('filter-kind').innerHTML = chipsHtml(['Semua', 'Pembacaan', 'Keputusan'], dFilters.kind);
-  const rangeLabels = { 6: '6 jam', 24: '24 jam', 168: '7 hari' };
+  const rangeLabels = { 6: '6 Jam', 24: '24 Jam', 168: '7 Hari' };
   document.getElementById('filter-range').innerHTML = Object.entries(rangeLabels).map(([h, label]) =>
     `<button class="chip ${Number(h) === dFilters.rangeHours ? 'on' : ''}" data-value="${h}">${label}</button>`).join('');
 }
@@ -384,8 +648,7 @@ async function loadDataPage() {
     const decisions = await dRes.json();
     const rRows = readings.map(r => ({
       ts: r.received_at, node: id, kind: 'Pembacaan',
-      s1: r.soil_moisture_1_pct, s2: r.soil_moisture_2_pct, t1: r.temp_1_c, t2: r.temp_2_c,
-      note: '-',
+      s1: r.soil_moisture_1_pct, s2: r.soil_moisture_2_pct, t1: r.temp_1_c, t2: r.temp_2_c, note: '-',
     }));
     const dRows = decisions.filter(d => d.action !== 'none').map(d => ({
       ts: d.created_at, node: id, kind: 'Keputusan',
@@ -402,32 +665,27 @@ async function loadDataPage() {
 function renderDataTable() {
   const cutoff = Date.now() / 1000 - dFilters.rangeHours * 3600;
   const filtered = dataRows.filter(r =>
-    r.ts >= cutoff &&
-    (dFilters.node === 'Semua' || r.node === dFilters.node) &&
-    (dFilters.kind === 'Semua' || r.kind === dFilters.kind));
+    r.ts >= cutoff && (dFilters.node === 'Semua' || r.node === dFilters.node) && (dFilters.kind === 'Semua' || r.kind === dFilters.kind)
+  );
 
   const decisions = filtered.filter(r => r.kind === 'Keputusan').length;
   const avg = filtered.length ? filtered.reduce((a, r) => a + (r.s1 || 0), 0) / filtered.length : 0;
   document.getElementById('data-stats').innerHTML = `
-    <span>Baris hasil saringan: <b>${filtered.length}</b></span>
-    <span>Pembacaan: <b>${filtered.length - decisions}</b></span>
-    <span>Keputusan valve: <b>${decisions}</b></span>
-    <span>Rata-rata soil 1: <b>${avg.toFixed(1)}%</b></span>
+    <span>Total Baris: <b>${filtered.length}</b></span>
+    <span>Data Sensor: <b>${filtered.length - decisions}</b></span>
+    <span>Aksi Valve: <b>${decisions}</b></span>
+    <span>Rata-rata Kelembapan 1: <b>${avg.toFixed(1)}%</b></span>
   `;
 
   const shown = filtered.slice(0, 200);
   document.getElementById('data-rows').innerHTML = shown.map(r => `
     <tr>
-      <td>${fmtTime(r.ts)}</td>
-      <td>${r.node}</td>
-      <td style="color:${r.kind === 'Keputusan' ? 'var(--accent)' : 'var(--muted)'}">${r.kind}</td>
-      <td>${fmtNum(r.s1)}%</td>
-      <td>${r.s2 == null ? '-' : fmtNum(r.s2) + '%'}</td>
-      <td>${fmtNum(r.t1)}&deg;C</td>
-      <td>${r.t2 == null ? '-' : fmtNum(r.t2) + '&deg;C'}</td>
-      <td>${r.note}</td>
+      <td>${fmtTime(r.ts)}</td><td><strong>${r.node}</strong></td>
+      <td><span style="padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; background: ${r.kind === 'Keputusan' ? '#dcefe0' : '#eef6ee'}; color: ${r.kind === 'Keputusan' ? 'var(--accent-hover)' : 'var(--muted)'}">${r.kind}</span></td>
+      <td>${fmtNum(r.s1)}%</td><td>${r.s2 == null ? '-' : fmtNum(r.s2) + '%'}</td>
+      <td>${fmtNum(r.t1)}&deg;C</td><td>${r.t2 == null ? '-' : fmtNum(r.t2) + '&deg;C'}</td><td>${r.note}</td>
     </tr>
-  `).join('') || `<tr><td colspan="8" class="muted">Tidak ada data pada rentang/filter ini</td></tr>`;
+  `).join('') || `<tr><td colspan="8" style="text-align:center; padding: 30px; color: var(--muted)">Tidak ada data pada rentang waktu atau filter ini.</td></tr>`;
 
   document.getElementById('download-csv').onclick = () => downloadCsv(filtered);
 }
@@ -438,18 +696,14 @@ function downloadCsv(rows) {
     new Date(r.ts * 1000).toISOString(), r.node, r.kind,
     r.s1 ?? '', r.s2 ?? '', r.t1 ?? '', r.t2 ?? '', (r.note || '').replace(/&middot;/g, '-'),
   ].join(',')));
-  const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = `irigasi_${dFilters.node}_${dFilters.rangeHours}jam.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
-loadNodes();
-setInterval(loadNodes, 4000);
+loadNodes(); setInterval(loadNodes, 4000);
+loadWeather(); setInterval(loadWeather, WEATHER_REFRESH_MS);
 </script>
 </body>
 </html>

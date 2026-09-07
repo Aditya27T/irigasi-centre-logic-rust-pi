@@ -22,4 +22,29 @@ pub struct SensorReading {
     pub seq: Option<i64>,
     #[serde(default)]
     pub uptime_ms: Option<i64>,
+
+    /// Status relay fisik aktual dari ESP32 ("ON"/"OFF"), sumber kebenaran untuk
+    /// status valve di dashboard. Opsional supaya kompatibel dengan firmware lama.
+    #[serde(default, rename = "relay3")]
+    pub relay_1: Option<String>,
+    #[serde(default, rename = "relay4")]
+    pub relay_2: Option<String>,
+}
+
+impl SensorReading {
+    pub fn relay_1_open(&self) -> Option<bool> {
+        relay_status_to_bool(self.relay_1.as_deref())
+    }
+
+    pub fn relay_2_open(&self) -> Option<bool> {
+        relay_status_to_bool(self.relay_2.as_deref())
+    }
+}
+
+fn relay_status_to_bool(status: Option<&str>) -> Option<bool> {
+    match status {
+        Some("ON") => Some(true),
+        Some("OFF") => Some(false),
+        _ => None,
+    }
 }

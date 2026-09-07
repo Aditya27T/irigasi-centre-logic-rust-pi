@@ -22,37 +22,61 @@ id = "esp32-01"
 zone = "Zona A"
 
 [nodes.valve_1]
-mode = "sensor"
-open_temp_threshold_c = 27.0
-open_soil_max_pct = 35.0
+mode = "schedule"
 close_temp_threshold_c = 25.0
 close_soil_min_pct = 45.0
 max_open_duration_s = 120
 
+[[nodes.valve_1.schedule]]
+start = "06:00"
+end = "06:15"
+
+[[nodes.valve_1.schedule]]
+start = "17:00"
+end = "17:15"
+
 [nodes.valve_2]
-mode = "sensor"
-open_temp_threshold_c = 27.0
-open_soil_max_pct = 35.0
+mode = "schedule"
 close_temp_threshold_c = 25.0
 close_soil_min_pct = 45.0
 max_open_duration_s = 120
+
+[[nodes.valve_2.schedule]]
+start = "06:00"
+end = "06:15"
+
+[[nodes.valve_2.schedule]]
+start = "17:00"
+end = "17:15"
 
 [[nodes]]
 id = "esp32-02"
 zone = "Zona B"
 
 [nodes.valve_1]
-mode = "sensor"
-open_temp_threshold_c = 27.0
-open_soil_max_pct = 35.0
+mode = "schedule"
 close_temp_threshold_c = 25.0
 close_soil_min_pct = 45.0
 max_open_duration_s = 120
 
+[[nodes.valve_1.schedule]]
+start = "06:00"
+end = "06:15"
+
+[[nodes.valve_1.schedule]]
+start = "17:00"
+end = "17:15"
+
 [nodes.valve_2]
-mode = "sensor"
-open_temp_threshold_c = 27.0
-open_soil_max_pct = 35.0
+mode = "schedule"
 close_temp_threshold_c = 25.0
 close_soil_min_pct = 45.0
 max_open_duration_s = 120
+
+[[nodes.valve_2.schedule]]
+start = "06:00"
+end = "06:15"
+
+[[nodes.valve_2.schedule]]
+start = "17:00"
+end = "17:15"

@@ -8,8 +8,8 @@
 //=================================================
 // PENGATURAN WI-FI & MQTT
 //=================================================
-const char* ssid        = "Modalo Dewe !!";
-const char* password    = "minimalijinsek";
+const char* ssid        = "PC-POSTDOCTORAL 1594";
+const char* password    = "11223344";
 // TEST: HiveMQ Cloud (TLS, port 8883) -- dipakai sementara untuk uji koneksi ESP32 saja.
 // Pi/Rust (irigasi-core) TETAP pakai Mosquitto lokal (localhost) untuk sekarang, belum diubah.
 const char* mqtt_server = "36d454362d184d17bf3e8a1d7131b8fc.s1.eu.hivemq.cloud";
@@ -20,7 +20,7 @@ const char* mqtt_pass   = "4z5%artmPRAtNT0OdmAxB9HHEHTqPSaT";
 //=================================================
 // IDENTITAS NODE (sesuai skema topic plan.md §2: irigasi/ipesg/v1/<device_id>/...)
 //=================================================
-const char* device_id   = "esp32-01";
+const char* device_id   = "esp32-02";
 const char* mqtt_id     = device_id;
 
 char topic_sensor[48];
@@ -134,8 +134,8 @@ void onMqttMessage(char* topic, byte* payload, unsigned int length) {
   }
 
   const char* action  = cmd["action"]     | "none";
-  int  valveId         = cmd["valve_id"]   | 0;
-  long durationS        = cmd["duration_s"] | 0;
+  int  valveId        = cmd["valve_id"]   | 0;
+  long durationS      = cmd["duration_s"] | 0;
 
   Serial.printf("Command diterima: action=%s valve_id=%d duration_s=%ld\n", action, valveId, durationS);
 
@@ -147,7 +147,7 @@ void onMqttMessage(char* topic, byte* payload, unsigned int length) {
 }
 
 //=================================================
-// KONEKSI WI-FI
+// KONEKSI WI-FI (SUDAH DIOPTIMASI)
 //=================================================
 void setupWiFi() {
   delay(10);
@@ -155,16 +155,33 @@ void setupWiFi() {
   Serial.print("Menghubungkan ke Wi-Fi: ");
   Serial.println(ssid);
 
+  // 1. Optimasi Mode: Paksa ESP32 hanya menjadi Client (Station)
+  WiFi.mode(WIFI_STA);
+  
+  // 2. Clear State: Putuskan sisa koneksi "nyangkut" di background
+  WiFi.disconnect();
+  delay(100);
+
   WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
+  // 3. Batasi waktu tunggu (Timeout) agar tidak stuck/hang selamanya
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 40) { // Maksimal 20 detik tunggu (40 * 500ms)
     delay(500);
     Serial.print(".");
+    attempts++;
   }
 
-  Serial.println("\nWi-Fi Terhubung!");
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
+  // 4. Pengecekan status
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWi-Fi Terhubung!");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\nGagal terhubung (Timeout). Mereset ESP32...");
+    delay(1000);
+    ESP.restart(); // Mulai ulang otomatis untuk mencoba fresh connection
+  }
 }
 
 //=================================================

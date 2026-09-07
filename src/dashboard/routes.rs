@@ -232,6 +232,7 @@ async fn post_command(
         .is_ok();
 
     let db = state.db.clone();
+    let state_twin = state.twin.clone();
     let now = chrono::Utc::now().timestamp();
     let device_id_for_blocking = device_id.clone();
     let cmd_id_for_blocking = command_id.clone();
@@ -250,22 +251,30 @@ async fn post_command(
             tracing::error!("Gagal simpan manual decision: {err}");
         }
         if published {
-            let expires_at = if req.action == ValveAction::Open {
-                Some(now + req.duration_s as i64)
-            } else {
-                None
-            };
+            let is_open = req.action == ValveAction::Open;
+            let expires_at = if is_open { Some(now + req.duration_s as i64) } else { None };
             if let Err(err) = repo::update_twin_valve_state(
                 &conn,
                 &device_id_for_blocking,
                 req.valve_id,
-                req.action == ValveAction::Open,
+                is_open,
                 "manual",
                 expires_at,
                 now,
             ) {
                 tracing::error!("Gagal update twin_state setelah manual override: {err}");
             }
+            // Update juga twin in-memory yang dipakai decision engine di loop MQTT,
+            // supaya engine langsung berhenti mengevaluasi valve ini sampai dilepas
+            // lagi ke auto -- kalau tidak, upsert_twin_state() di reading berikutnya
+            // akan menimpa balik status manual ini.
+            state_twin.lock().unwrap().set_valve_state(
+                &device_id_for_blocking,
+                req.valve_id,
+                is_open,
+                "manual",
+                expires_at,
+            );
         }
     })
     .await
@@ -292,10 +301,15 @@ async fn release_valve(
 
     let db = state.db.clone();
     let now = chrono::Utc::now().timestamp();
-    tokio::task::spawn_blocking(move || repo::release_valve_to_auto(&db.lock().unwrap(), &device_id, valve_id, now))
-        .await
-        .map_err(ApiError::internal)?
-        .map_err(ApiError::internal)?;
+    let device_id_for_blocking = device_id.clone();
+    tokio::task::spawn_blocking(move || {
+        repo::release_valve_to_auto(&db.lock().unwrap(), &device_id_for_blocking, valve_id, now)
+    })
+    .await
+    .map_err(ApiError::internal)?
+    .map_err(ApiError::internal)?;
+
+    state.twin.lock().unwrap().release_to_auto(&device_id, valve_id);
 
     Ok(Json(ReleaseResponse { ok: true }))
 }

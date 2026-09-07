@@ -281,8 +281,11 @@ pub fn insert_manual_decision(
     Ok(())
 }
 
-/// Update optimistic valve state di twin_state setelah manual override berhasil
-/// dipublish -- source of truth tetap reading asli berikutnya dari loop MQTT.
+/// Update valve state di twin_state setelah manual override berhasil dipublish.
+/// Source "manual" bertahan sampai dilepas lewat release_valve_to_auto() --
+/// decision engine menahan evaluasi valve ini selama source == "manual" (lihat
+/// decision::rules::evaluate_valve_guarded), status open/close tetap mengikuti
+/// relay fisik dari reading berikutnya (lihat twin::Twin::update_from_reading).
 #[cfg(feature = "dashboard")]
 #[allow(clippy::too_many_arguments)]
 pub fn update_twin_valve_state(

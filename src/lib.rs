@@ -22,15 +22,8 @@ pub async fn run(config: Config) -> Result<()> {
     let db = storage::db::open(&config.storage.sqlite_path).context("membuka database SQLite")?;
 
     let (client, mut eventloop) = mqtt::client::connect(&config.mqtt);
-    mqtt::client::subscribe_sensors(&client).await?;
-    info!(
-        "Terhubung ke MQTT broker {}:{}, subscribe {}",
-        config.mqtt.broker_host,
-        config.mqtt.broker_port,
-        mqtt::topics::sensor_topic_filter()
-    );
 
-    let mut twin = Twin::default();
+    let twin = std::sync::Arc::new(std::sync::Mutex::new(Twin::default()));
 
     #[cfg(feature = "dashboard")]
     if config.dashboard.enabled {
@@ -40,6 +33,7 @@ pub async fn run(config: Config) -> Result<()> {
             db: std::sync::Arc::new(std::sync::Mutex::new(dashboard_db)),
             mqtt: client.clone(),
             nodes: std::sync::Arc::new(config.nodes.clone()),
+            twin: twin.clone(),
         };
         let bind_addr = config.dashboard.bind_addr.clone();
         tokio::spawn(async move {
@@ -58,6 +52,22 @@ pub async fn run(config: Config) -> Result<()> {
                 continue;
             }
         };
+
+        // Subscription perlu dikirim lagi setiap broker menerima koneksi baru.
+        // Setelah reconnect, clean session MQTT tidak menyimpan subscription sebelumnya.
+        if matches!(event, Event::Incoming(Packet::ConnAck(_))) {
+            if let Err(err) = mqtt::client::subscribe_sensors(&client).await {
+                error!("Gagal subscribe ulang ke sensor MQTT: {err}");
+            } else {
+                info!(
+                    "Terhubung ke MQTT broker {}:{}, subscribe {}",
+                    config.mqtt.broker_host,
+                    config.mqtt.broker_port,
+                    mqtt::topics::sensor_topic_filter()
+                );
+            }
+            continue;
+        }
 
         let Event::Incoming(Packet::Publish(publish)) = event else {
             continue;
@@ -81,14 +91,14 @@ pub async fn run(config: Config) -> Result<()> {
             error!("Gagal simpan reading: {err}");
         }
 
-        twin.update_from_reading(&reading, received_at);
+        twin.lock().unwrap().update_from_reading(&reading, received_at);
 
         let Some(node_cfg) = config.nodes.iter().find(|n| n.id == device_id) else {
             warn!("Tidak ada konfigurasi node untuk device_id={device_id}, reading dicatat tapi tidak dievaluasi");
             continue;
         };
 
-        let zone_state = twin.get(&device_id).cloned().unwrap_or_default();
+        let zone_state = twin.lock().unwrap().get(&device_id).cloned().unwrap_or_default();
         let now = Local::now().time();
         let outcomes = decision::rules::evaluate(&reading, node_cfg, &zone_state, now);
 
@@ -126,7 +136,7 @@ pub async fn run(config: Config) -> Result<()> {
                             } else {
                                 None
                             };
-                            twin.set_valve_state(&device_id, outcome.valve_id, is_open, "auto", expires_at);
+                            twin.lock().unwrap().set_valve_state(&device_id, outcome.valve_id, is_open, "auto", expires_at);
                             info!(
                                 "Command dikirim: {topic} action={:?} valve_id={} reason={}",
                                 outcome.action, outcome.valve_id, outcome.reason
@@ -155,8 +165,8 @@ pub async fn run(config: Config) -> Result<()> {
             }
         }
 
-        if let Some(state) = twin.get(&device_id) {
-            if let Err(err) = storage::repo::upsert_twin_state(&db, &device_id, state, chrono::Utc::now().timestamp()) {
+        if let Some(state) = twin.lock().unwrap().get(&device_id).cloned() {
+            if let Err(err) = storage::repo::upsert_twin_state(&db, &device_id, &state, chrono::Utc::now().timestamp()) {
                 error!("Gagal update twin_state: {err}");
             }
         }

@@ -224,13 +224,28 @@ Desain di Fase A–C sudah menyiapkan seam berikut tanpa perlu dibangun sekarang
 ### 8.1 Dashboard + API — sudah diimplementasi
 
 `--features dashboard` sekarang benar-benar berisi kode (sebelumnya cuma dependency kosong). Desain kunci:
-- **Tidak share `Twin` in-memory** — dashboard baca langsung dari tabel `twin_state` (sudah live-updated tiap event oleh loop MQTT) lewat **koneksi SQLite kedua** (`storage::db::open` dipanggil lagi). `storage/db.rs` sekarang set `PRAGMA journal_mode=WAL` + `busy_timeout=5000` supaya 2 connection ini tidak `SQLITE_BUSY`.
+- **`Twin` in-memory di-share** (`Arc<Mutex<Twin>>`) antara loop MQTT dan dashboard — direvisi dari desain awal "tidak share" karena itu justru akar bug "status valve manual ketimpa auto dalam ~2 detik" (lihat catatan fix di bawah). Dashboard tetap baca snapshot lewat **koneksi SQLite kedua** (`storage::db::open` dipanggil lagi) untuk `GET /api/nodes` dkk., tapi *tulis* (`post_command`/`release_valve`) sekarang update `Twin` bersama juga supaya decision engine langsung tahu ada override manual. `storage/db.rs` set `PRAGMA journal_mode=WAL` + `busy_timeout=5000` supaya 2 connection ini tidak `SQLITE_BUSY`.
 - **HTML di-embed ke binary** (`include_str!`) — `static/index.html` tidak perlu di-scp ke Pi, deploy tetap 1 binary + 1 config.toml. `tower-http` dihapus dari `Cargo.toml` (tidak kepakai).
-- Endpoint: `GET /api/nodes` (snapshot semua node), `GET /api/nodes/:id/config` (threshold, read-only — sengaja tidak expose `MqttConfig`/credential), `GET /api/nodes/:id/readings|decisions?limit=` (riwayat), `POST /api/nodes/:id/command` (override manual — publish MQTT + catat ke `decisions` dengan `reason="manual_override"` + update optimistic `twin_state`).
+- Endpoint: `GET /api/nodes` (snapshot semua node), `GET /api/nodes/:id/config` (threshold, read-only — sengaja tidak expose `MqttConfig`/credential), `GET /api/nodes/:id/readings|decisions?limit=` (riwayat), `POST /api/nodes/:id/command` (override manual — publish MQTT + catat ke `decisions` dengan `reason="manual_override"` + update `twin_state` DB & `Twin` in-memory).
 - **Tanpa autentikasi** (keputusan sadar — LAN-only, sama seperti asumsi trust MQTT `allow_anonymous`).
 - Config baru `[dashboard]` (`enabled`, `bind_addr`) di `config/default.toml` & `deploy/config.pi.toml`.
 - Cross-compile Pi sekarang pakai `cargo build --release --features dashboard --target aarch64-unknown-linux-gnu`.
-- Live di Pi: `http://192.168.2.119:8080/`.
+- Live di Pi: `http://192.168.137.251:8080/` (IP DHCP, cek ulang di router/`hostname -I` di Pi kalau berubah lagi).
+
+#### 8.1.1 Fix: status valve tidak sinkron & manual override ketimpa (2026-09-04)
+
+Gejala: tombol valve di dashboard kembali ke OFF dalam hitungan detik meski relay fisik ON; klik manual di satu valve terlihat mempengaruhi valve lain.
+
+Root cause (3 hal, semua sisi Rust — firmware `iot.c` sudah benar):
+1. `SensorReading` mengabaikan field `relay3`/`relay4` yang sudah dikirim firmware di payload sensor yang sama (lihat `iot.c` §Publish) — status ON/OFF dashboard jadi murni asumsi in-memory, bukan ground truth relay.
+2. `AppState` dashboard tidak share `Twin` in-memory dengan loop MQTT (lihat desain awal §8.1 di atas) — `post_command`/`release_valve` cuma menulis SQLite, sehingga `upsert_twin_state()` di reading berikutnya (tiap ~2 detik) menimpa balik status manual dengan state default/auto dari `Twin` yang tidak tahu apa-apa soal override.
+3. `decision::rules::evaluate_valve` tidak pernah membaca `valve_x_source` — decision engine tetap bebas menerbitkan command auto walau valve sedang di-override manual.
+
+Fix (`src/model/sensor.rs`, `src/twin/mod.rs`, `src/decision/rules.rs`, `src/lib.rs`, `src/dashboard/{state,routes}.rs`):
+- `SensorReading` parse `relay3`/`relay4` → `Twin::update_from_reading()` jadikan itu sumber kebenaran `valve_x_open` di tiap reading.
+- `Twin` sekarang `Arc<Mutex<Twin>>` di-share ke `AppState` — `post_command` & `release_valve` update `Twin` in-memory selain SQLite.
+- `evaluate_valve_guarded()` menahan decision engine (`Action::None`, reason `"manual_hold"`) selama `source == "manual"`, sampai dilepas via `release_to_auto()`.
+- Diverifikasi live di Pi (192.168.137.251) pasca-deploy: `valve_2_source` esp32-02 bertahan `"manual"` lintas >90 detik & banyak reading (sebelum fix, flip balik ke `"auto"` dalam ~2 detik).
 
 **Redesign tampilan** (referensi visual dari mockup Claude Design Canvas, dibangun ulang sebagai vanilla JS tanpa CDN/runtime proprietary): 2 tab ("Kontrol & Pantau" + "Data & Unduh"), kartu KPI, kartu per-node (bar kelembapan+threshold, valve toggle dengan durasi 60s/2mnt/5mnt), badge Otomatis/Manual per valve, tombol "Lepas ke Otomatis", tabel riwayat dengan filter node/jenis/rentang + export CSV client-side. Penambahan untuk mendukung ini:
 - `NodeConfig.zone: Option<String>` (label plot, mis. "Zona A") di `config.rs` + config files.
@@ -238,6 +253,51 @@ Desain di Fase A–C sudah menyiapkan seam berikut tanpa perlu dibangun sekarang
 - Endpoint baru `POST /api/nodes/:id/valves/:valve_id/release` — lepas valve ke mode auto tanpa publish MQTT (DB-only).
 - `GET /api/nodes` sekarang selalu mengembalikan seluruh node dari config (bukan cuma yang sudah punya baris `twin_state`), plus field `online` (heuristik: `last_reading_at` dalam 30 detik terakhir).
 - Sengaja di-skip dari mockup: sparkline riwayat per-kartu (butuh N+1 fetch tambahan) dan toggle mode Otomatis/Manual global (tidak ada konsepnya di backend — tiap valve independen).
+
+### 8.2 Rencana: aktifkan mode "Jadwal Siram" (belum diterapkan)
+
+Permintaan: valve buka sesuai jam siram tetap, tapi **berhenti** tetap berdasarkan threshold sensor (bukan durasi jadwal habis). Setelah dicek: **fitur ini sudah ada dan lengkap** sejak Fase A — `ValveConfig::Schedule` (`src/config.rs`) + `evaluate_valve()` (`src/decision/rules.rs`) sudah persis mengimplementasikan perilaku ini, dilindungi 4 unit test (`schedule_mode_opens_within_window_when_not_already_open`, `schedule_mode_does_not_reopen_if_already_open`, `schedule_mode_close_condition_overrides_schedule`, `schedule_mode_none_outside_window`). Hanya saja **belum pernah diaktifkan** — `config/default.toml` & `deploy/config.pi.toml` saat ini keempat blok valve (`esp32-01`/`esp32-02` × `valve_1`/`valve_2`) masih `mode = "sensor"`.
+
+Jadi ini **bukan pekerjaan kode**, murni **perubahan konfigurasi** (tidak perlu build ulang binary). Keputusan yang sudah dikonfirmasi user:
+- Kondisi berhenti **tetap** logika yang sudah ada: `temp_c < close_temp_threshold_c DAN soil_pct >= close_soil_min_pct` (AND, bukan cuma soil) — tidak ada perubahan di `decision/rules.rs`.
+- Jam siram pakai **placeholder** dulu, gampang diedit sendiri nanti: `06:00–06:15` dan `17:00–17:15`.
+
+**Perubahan di kedua config file**, untuk semua 4 blok valve, dari:
+```toml
+[nodes.valve_1]
+mode = "sensor"
+open_temp_threshold_c = 27.0
+open_soil_max_pct = 35.0
+close_temp_threshold_c = 25.0
+close_soil_min_pct = 45.0
+max_open_duration_s = 120
+```
+menjadi:
+```toml
+[nodes.valve_1]
+mode = "schedule"
+close_temp_threshold_c = 25.0
+close_soil_min_pct = 45.0
+max_open_duration_s = 120
+
+[[nodes.valve_1.schedule]]
+start = "06:00"
+end = "06:15"
+
+[[nodes.valve_1.schedule]]
+start = "17:00"
+end = "17:15"
+```
+(`open_temp_threshold_c`/`open_soil_max_pct` dihapus — field itu tidak ada di varian `Schedule`, `ValveConfig` internally-tagged by `mode` jadi field asing akan ditolak serde. `close_temp_threshold_c`/`close_soil_min_pct`/`max_open_duration_s` tetap nilai sama seperti sekarang, cuma mekanisme buka yang berubah dari threshold jadi jadwal.)
+
+**Deploy**: config-only, tidak perlu cross-compile — `scp deploy/config.pi.toml` ke `/home/irigasi/app/config.toml`, `systemctl restart irigasi`, cek log bersih.
+
+**Verifikasi sebelum deploy ke Pi**:
+1. `cargo run` lokal dengan config terupdate — pastikan `Config::load()` sukses parse (kalau field `open_*` kelupaan tidak dihapus, serde akan gagal parse dengan jelas).
+2. Uji "buka sesuai jadwal": ganti sementara 1 window schedule di config lokal supaya mencakup jam saat ini, jalankan service, `mosquitto_pub` dummy reading yang tidak memicu close, cek log `action=Open reason=scheduled_window`.
+3. Uji "tutup tetap by sensor": dari state open di atas, `mosquitto_pub` reading dengan soil ≥ close_soil_min_pct DAN temp < close_temp_threshold_c → cek log `action=Close reason=close_condition_met` (membuktikan penutupan tidak menunggu jadwal habis).
+4. `cargo test` tetap harus lolos (regression check, tidak ada test baru yang perlu ditambah).
+5. Kembalikan ke jam placeholder asli (bukan jam uji), baru redeploy ke Pi, lalu pantau `journalctl -u irigasi -f` melewati jam siram sungguhan pertama untuk konfirmasi end-to-end di hardware asli.
 
 ---
 
