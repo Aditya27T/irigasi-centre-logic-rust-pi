@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masuk — Irigasi Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #3b7f57;
+    --accent-hover: #286342;
+    --red: #c75b57;
+    --muted: #5e7063;
+    --bg: #f3f8f2;
+    --card: #fffefa;
+    --border: #dbe8dc;
+    --ink: #203529;
+    --shadow-md: 0 8px 18px -8px rgba(34, 73, 46, 0.18), 0 3px 6px -3px rgba(34, 73, 46, 0.08);
+    --radius-lg: 16px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif;
+    padding: 24px;
+  }
+  .card {
+    width: 100%; max-width: 360px; background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 32px 28px;
+  }
+  h1 { font-size: 1.25rem; font-weight: 700; margin: 0 0 4px; }
+  p.sub { margin: 0 0 24px; color: var(--muted); font-size: 0.85rem; }
+  label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  input {
+    width: 100%; font-family: inherit; font-size: 0.95rem; padding: 10px 12px; margin-bottom: 16px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; color: var(--ink);
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  button {
+    width: 100%; padding: 11px; border: none; border-radius: var(--radius-sm); background: var(--accent);
+    color: #fff; font-family: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  button:disabled { opacity: 0.6; cursor: default; }
+  .error {
+    background: #fdf1f0; border: 1px solid var(--red); color: var(--red); border-radius: var(--radius-sm);
+    padding: 10px 12px; font-size: 0.85rem; margin-bottom: 16px;
+  }
+  .error[hidden] { display: none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Irigasi Dashboard</h1>
+    <p class="sub">Masuk untuk melihat dan mengatur sistem.</p>
+    <div class="error" id="err" hidden></div>
+    <form id="login-form">
+      <label for="u">Username</label>
+      <input id="u" name="username" autocomplete="username" autofocus>
+      <label for="p">Password</label>
+      <input id="p" name="password" type="password" autocomplete="current-password">
+      <button type="submit" id="submit-btn">Masuk</button>
+    </form>
+  </div>
+
+<script>
+  const form = document.getElementById('login-form');
+  const err = document.getElementById('err');
+  const btn = document.getElementById('submit-btn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Memeriksa...';
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('u').value,
+          password: document.getElementById('p').value,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok) {
+        location.href = '/';
+        return;
+      }
+      err.textContent = body.error || 'Gagal masuk.';
+      err.hidden = false;
+    } catch (e) {
+      err.textContent = 'Tidak bisa menghubungi server.';
+      err.hidden = false;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Masuk';
+    }
+  });
+</script>
+</body>
+</html>

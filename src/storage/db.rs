@@ -9,8 +9,6 @@ pub fn open(path: &str) -> Result<Connection> {
         }
     }
     let conn = Connection::open(path).with_context(|| format!("membuka SQLite {path}"))?;
-    // WAL + busy_timeout supaya connection ini bisa hidup berdampingan dengan connection
-    // lain (dashboard) di file SQLite yang sama tanpa SQLITE_BUSY.
     conn.pragma_update(None, "journal_mode", "WAL")
         .context("set journal_mode WAL")?;
     conn.pragma_update(None, "busy_timeout", 5000)
@@ -18,13 +16,16 @@ pub fn open(path: &str) -> Result<Connection> {
     conn.execute_batch(include_str!("schema.sql"))
         .context("inisialisasi schema SQLite")?;
     migrate_twin_state_columns(&conn).context("migrasi kolom twin_state")?;
+    // Sengaja NON-fatal: kode sudah tidak menyentuh kolom ini sama sekali, jadi kegagalan drop
+    // tidak berbahaya. Sebaliknya `?` di sini akan menggagalkan startup dan membuat
+    // irigasi.service crashloop di Pi (Restart=on-failure + RestartSec=5) hanya karena
+    // pembersihan kosmetik.
+    if let Err(err) = drop_twin_state_water_balance(&conn) {
+        tracing::warn!("Gagal drop kolom twin_state.water_balance_mm (diabaikan): {err:#}");
+    }
     Ok(conn)
 }
 
-/// SQLite tidak punya `ADD COLUMN IF NOT EXISTS` -- untuk database yang sudah ada dari
-/// sebelum kolom valve_*_source/expires_at ditambahkan, cek dulu lewat pragma_table_info
-/// baru ALTER TABLE kalau memang belum ada. Database baru sudah dapat kolom ini langsung
-/// dari CREATE TABLE di schema.sql, jadi loop ini jadi no-op untuknya.
 fn migrate_twin_state_columns(conn: &Connection) -> Result<()> {
     let mut existing = std::collections::HashSet::new();
     conn.pragma(None, "table_info", "twin_state", |row| {
@@ -43,6 +44,19 @@ fn migrate_twin_state_columns(conn: &Connection) -> Result<()> {
             conn.execute_batch(&format!("ALTER TABLE twin_state ADD COLUMN {name} {def}"))
                 .with_context(|| format!("menambah kolom twin_state.{name}"))?;
         }
+    }
+    Ok(())
+}
+
+fn drop_twin_state_water_balance(conn: &Connection) -> Result<()> {
+    let mut existing = std::collections::HashSet::new();
+    conn.pragma(None, "table_info", "twin_state", |row| {
+        existing.insert(row.get::<_, String>(1)?);
+        Ok(())
+    })?;
+    if existing.contains("water_balance_mm") {
+        conn.execute_batch("ALTER TABLE twin_state DROP COLUMN water_balance_mm")
+            .context("drop column water_balance_mm")?;
     }
     Ok(())
 }

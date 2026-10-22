@@ -74,8 +74,8 @@ pub fn upsert_twin_state(
         "INSERT INTO twin_state
             (device_id, last_soil_moisture_1_pct, last_soil_moisture_2_pct, last_temp_1_c, last_temp_2_c,
              valve_1_open, valve_2_open, valve_1_source, valve_1_expires_at, valve_2_source, valve_2_expires_at,
-             water_balance_mm, last_reading_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)
+             last_reading_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
          ON CONFLICT(device_id) DO UPDATE SET
             last_soil_moisture_1_pct = excluded.last_soil_moisture_1_pct,
             last_soil_moisture_2_pct = excluded.last_soil_moisture_2_pct,
@@ -87,7 +87,6 @@ pub fn upsert_twin_state(
             valve_1_expires_at = excluded.valve_1_expires_at,
             valve_2_source = excluded.valve_2_source,
             valve_2_expires_at = excluded.valve_2_expires_at,
-            water_balance_mm = excluded.water_balance_mm,
             last_reading_at = excluded.last_reading_at,
             updated_at = excluded.updated_at",
         params![
@@ -102,7 +101,6 @@ pub fn upsert_twin_state(
             state.valve_1_expires_at,
             state.valve_2_source,
             state.valve_2_expires_at,
-            state.water_balance_mm,
             state.last_reading_at,
             updated_at,
         ],
@@ -124,7 +122,6 @@ pub struct TwinStateRow {
     pub valve_1_expires_at: Option<i64>,
     pub valve_2_source: String,
     pub valve_2_expires_at: Option<i64>,
-    pub water_balance_mm: f32,
     pub last_reading_at: Option<i64>,
     pub updated_at: i64,
 }
@@ -166,7 +163,7 @@ pub fn list_twin_states(conn: &Connection) -> Result<Vec<TwinStateRow>> {
         "SELECT device_id, last_soil_moisture_1_pct, last_soil_moisture_2_pct,
                 last_temp_1_c, last_temp_2_c, valve_1_open, valve_2_open,
                 valve_1_source, valve_1_expires_at, valve_2_source, valve_2_expires_at,
-                water_balance_mm, last_reading_at, updated_at
+                last_reading_at, updated_at
          FROM twin_state ORDER BY device_id",
     )?;
     let rows = stmt
@@ -183,9 +180,8 @@ pub fn list_twin_states(conn: &Connection) -> Result<Vec<TwinStateRow>> {
                 valve_1_expires_at: row.get(8)?,
                 valve_2_source: row.get(9)?,
                 valve_2_expires_at: row.get(10)?,
-                water_balance_mm: row.get(11)?,
-                last_reading_at: row.get(12)?,
-                updated_at: row.get(13)?,
+                last_reading_at: row.get(11)?,
+                updated_at: row.get(12)?,
             })
         })?
         .collect::<rusqlite::Result<Vec<_>>>()?;

@@ -1,5 +1,7 @@
 # Dipakai di Raspberry Pi (bukan config/default.toml yang dipakai untuk dev lokal di laptop).
 # scp file ini ke Pi sebagai /home/irigasi/app/config.toml -- plan.md §5 Fase A step 8.
+# [[nodes]] di bawah ini HANYA seed saat DB kosong; setelah itu DB yang jadi sumber kebenaran
+# dan perubahan jadwal/threshold dilakukan lewat halaman Pengaturan tanpa restart.
 #
 # TEST: HiveMQ Cloud (TLS 8883) -- ESP32 (iot.c) juga diarahkan ke broker ini untuk uji coba.
 # Broker lama (Mosquitto lokal di Pi) masih terpasang & jalan, tinggal revert broker_host jadi

@@ -1,0 +1,846 @@
+{
+  "base_url": "http://127.0.0.1:18080",
+  "states": {
+    "01-login": {
+      "file": "01-login.png",
+      "note": "",
+      "boxes": [
+        {
+          "n": 1,
+          "label": "Kartu login",
+          "sels": [
+            ".card"
+          ],
+          "ok": true
+        },
+        {
+          "n": 2,
+          "label": "Judul",
+          "sels": [
+            ".card h1"
+          ],
+          "ok": true
+        },
+        {
+          "n": 3,
+          "label": "Subtitle",
+          "sels": [
+            ".card p.sub"
+          ],
+          "ok": true
+        },
+        {
+          "n": 4,
+          "label": "Input Username + label",
+          "sels": [
+            "label[for=\"u\"]",
+            "#u"
+          ],
+          "ok": true
+        },
+        {
+          "n": 5,
+          "label": "Input Password + label",
+          "sels": [
+            "label[for=\"p\"]",
+            "#p"
+          ],
+          "ok": true
+        },
+        {
+          "n": 6,
+          "label": "Tombol Masuk",
+          "sels": [
+            "#submit-btn"
+          ],
+          "ok": true
+        }
+      ],
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    "02-login-error": {
+      "file": "02-login-error.png",
+      "note": "",
+      "boxes": [
+        {
+          "n": 1,
+          "label": "Kartu login",
+          "sels": [
+            ".card"
+          ],
+          "ok": true
+        },
+        {
+          "n": 2,
+          "label": "Judul",
+          "sels": [
+            ".card h1"
+          ],
+          "ok": true
+        },
+        {
+          "n": 3,
+          "label": "Subtitle",
+          "sels": [
+            ".card p.sub"
+          ],
+          "ok": true
+        },
+        {
+          "n": 4,
+          "label": "Banner error",
+          "sels": [
+            "#err"
+          ],
+          "ok": true
+        },
+        {
+          "n": 5,
+          "label": "Input Username + label",
+          "sels": [
+            "label[for=\"u\"]",
+            "#u"
+          ],
+          "ok": true
+        },
+        {
+          "n": 6,
+          "label": "Input Password + label",
+          "sels": [
+            "label[for=\"p\"]",
+            "#p"
+          ],
+          "ok": true
+        },
+        {
+          "n": 7,
+          "label": "Tombol Masuk",
+          "sels": [
+            "#submit-btn"
+          ],
+          "ok": true
+        }
+      ],
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    "03-control": {
+      "file": "03-control.png",
+      "note": "Box 30 hanya ada saat override manual; auto tidak diberi kotak.",
+      "boxes": [
+        {
+          "n": 1,
+          "label": "Topbar",
+          "sels": [
+            "header.topbar"
+          ],
+          "ok": true
+        },
+        {
+          "n": 2,
+          "label": "Brand group",
+          "sels": [
+            ".brand-group"
+          ],
+          "ok": true
+        },
+        {
+          "n": 3,
+          "label": "Nav tabs",
+          "sels": [
+            "nav.nav-tabs"
+          ],
+          "ok": true
+        },
+        {
+          "n": 4,
+          "label": "Jam lokal",
+          "sels": [
+            ".clock-pill"
+          ],
+          "ok": true
+        },
+        {
+          "n": 5,
+          "label": "Tombol Keluar",
+          "sels": [
+            "#logout-btn"
+          ],
+          "ok": true
+        },
+        {
+          "n": 6,
+          "label": "Grid KPI",
+          "sels": [
+            "#kpis"
+          ],
+          "ok": true
+        },
+        {
+          "n": 7,
+          "label": "KPI Status Jaringan Node",
+          "sels": [
+            "#kpis .kpi-card:nth-child(1)"
+          ],
+          "ok": true
+        },
+        {
+          "n": 8,
+          "label": "KPI Katup / Valve Aktif",
+          "sels": [
+            "#kpis .kpi-card:nth-child(2)"
+          ],
+          "ok": true
+        },
+        {
+          "n": 9,
+          "label": "KPI Kondisi Lahan",
+          "sels": [
+            "#kpis .kpi-card:nth-child(3)"
+          ],
+          "ok": true
+        },
+        {
+          "n": 10,
+          "label": "KPI Cuaca",
+          "sels": [
+            "#kpis .kpi-card:nth-child(4)"
+          ],
+          "ok": true
+        },
+        {
+          "n": 11,
+          "label": "Widget Jadwal Siram",
+          "sels": [
+            "#schedule-card"
+          ],
+          "ok": true
+        },
+        {
+          "n": 12,
+          "label": "Baris jadwal",
+          "sels": [
+            "#schedule-rows"
+          ],
+          "ok": true
+        },
+        {
+          "n": 13,
+          "label": "Judul seksi node",
+          "sels": [
+            ".section-bar"
+          ],
+          "ok": true
+        },
+        {
+          "n": 14,
+          "label": "Grid kartu node",
+          "sels": [
+            "#nodes"
+          ],
+          "ok": true
+        },
+        {
+          "n": 15,
+          "label": "Kartu node 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1)"
+          ],
+          "ok": true
+        },
+        {
+          "n": 16,
+          "label": "Tag zona node 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .node-zone-tag"
+          ],
+          "ok": true
+        },
+        {
+          "n": 17,
+          "label": "ID device node 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .node-device-id"
+          ],
+          "ok": true
+        },
+        {
+          "n": 18,
+          "label": "Pill status node 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .node-card-head .status-pill"
+          ],
+          "ok": true
+        },
+        {
+          "n": 19,
+          "label": "Waktu update node 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .node-last-seen"
+          ],
+          "ok": true
+        },
+        {
+          "n": 20,
+          "label": "Gauge Soil Moisture 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .soil-gauge-item:nth-child(1)"
+          ],
+          "ok": true
+        },
+        {
+          "n": 21,
+          "label": "Gauge Soil Moisture 2",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .soil-gauge-item:nth-child(2)"
+          ],
+          "ok": true
+        },
+        {
+          "n": 22,
+          "label": "Tile Suhu Sensor 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .metric-tile:nth-child(1)"
+          ],
+          "ok": true
+        },
+        {
+          "n": 23,
+          "label": "Tile Suhu Sensor 2",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .metric-tile:nth-child(2)"
+          ],
+          "ok": true
+        },
+        {
+          "n": 24,
+          "label": "Kartu Valve 1 (auto)",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 25,
+          "label": "Judul Kartu Valve 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"] .valve-name-title"
+          ],
+          "ok": true
+        },
+        {
+          "n": 26,
+          "label": "Status aliran Valve 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"] .valve-subtext"
+          ],
+          "ok": true
+        },
+        {
+          "n": 27,
+          "label": "Switch buka/tutup Valve 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"] .btn-toggle-switch"
+          ],
+          "ok": true
+        },
+        {
+          "n": 28,
+          "label": "Badge mode Valve 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"] .valve-badge-row"
+          ],
+          "ok": true
+        },
+        {
+          "n": 29,
+          "label": "Pemilih durasi Valve 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"] .dur-picker-group"
+          ],
+          "ok": true
+        },
+        {
+          "n": 30,
+          "label": "Tombol Kembalikan ke Auto",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"] .btn-release-auto"
+          ],
+          "ok": false,
+          "reason": "tidak ada elemen terlihat"
+        },
+        {
+          "n": 31,
+          "label": "Kartu Valve 2",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"2\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 32,
+          "label": "Wadah toast",
+          "sels": [
+            "#toasts .toast"
+          ],
+          "ok": true
+        }
+      ],
+      "viewport": {
+        "width": 1920,
+        "height": 1243
+      }
+    },
+    "04-valve-manual": {
+      "file": "04-valve-manual.png",
+      "note": "Dibuka manual dengan durasi 5 menit (chip \"5 mnt\"); toast dibuat manual dengan teks yang sama persis dengan respons server.",
+      "boxes": [
+        {
+          "n": 1,
+          "label": "Kartu Valve 1 (manual)",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 2,
+          "label": "Badge Override Manual",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"] .valve-badge-row"
+          ],
+          "ok": true
+        },
+        {
+          "n": 3,
+          "label": "Tombol Kembalikan ke Auto (muncul)",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"] .btn-release-auto"
+          ],
+          "ok": true
+        },
+        {
+          "n": 4,
+          "label": "Status aliran Valve 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"] .valve-subtext"
+          ],
+          "ok": true
+        },
+        {
+          "n": 5,
+          "label": "Switch buka/tutup Valve 1",
+          "sels": [
+            "#nodes > .node-card:nth-child(1) .valve-card[data-valve=\"1\"] .btn-toggle-switch"
+          ],
+          "ok": true
+        },
+        {
+          "n": 6,
+          "label": "Toast sukses OPEN",
+          "sels": [
+            "#toasts .toast.success"
+          ],
+          "ok": true
+        }
+      ],
+      "viewport": {
+        "width": 1920,
+        "height": 1289
+      }
+    },
+    "05-data": {
+      "file": "05-data.png",
+      "note": "",
+      "boxes": [
+        {
+          "n": 1,
+          "label": "Kartu filter",
+          "sels": [
+            ".filters-card"
+          ],
+          "ok": true
+        },
+        {
+          "n": 2,
+          "label": "Filter node",
+          "sels": [
+            "#filter-node"
+          ],
+          "ok": true
+        },
+        {
+          "n": 3,
+          "label": "Filter jenis log",
+          "sels": [
+            "#filter-kind"
+          ],
+          "ok": true
+        },
+        {
+          "n": 4,
+          "label": "Filter rentang waktu",
+          "sels": [
+            "#filter-range"
+          ],
+          "ok": true
+        },
+        {
+          "n": 5,
+          "label": "Bar statistik",
+          "sels": [
+            "#data-stats"
+          ],
+          "ok": true
+        },
+        {
+          "n": 6,
+          "label": "Header tabel 8 kolom",
+          "sels": [
+            ".table-container table thead"
+          ],
+          "ok": true
+        },
+        {
+          "n": 7,
+          "label": "Badan tabel",
+          "sels": [
+            "#data-rows"
+          ],
+          "ok": true
+        },
+        {
+          "n": 8,
+          "label": "Tombol Unduh CSV",
+          "sels": [
+            "#download-csv"
+          ],
+          "ok": true
+        }
+      ],
+      "viewport": {
+        "width": 1920,
+        "height": 1305
+      }
+    },
+    "06-settings": {
+      "file": "06-settings.png",
+      "note": "Box 13/14/15 memakai Valve 2 karena esp32-01 valve 1 mode sensor; box 16 hidden saat tanpa validasi.",
+      "boxes": [
+        {
+          "n": 1,
+          "label": "Toolbar pengaturan",
+          "sels": [
+            ".settings-toolbar"
+          ],
+          "ok": true
+        },
+        {
+          "n": 2,
+          "label": "Tombol Tambah Node",
+          "sels": [
+            "#btn-add-node"
+          ],
+          "ok": true
+        },
+        {
+          "n": 3,
+          "label": "Tombol Muat Ulang",
+          "sels": [
+            "#btn-reload-settings"
+          ],
+          "ok": true
+        },
+        {
+          "n": 4,
+          "label": "Kumpulan kartu konfigurasi",
+          "sels": [
+            "#settings-nodes"
+          ],
+          "ok": true
+        },
+        {
+          "n": 5,
+          "label": "Kartu esp32-01",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 6,
+          "label": "Judul node",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] .settings-device-title"
+          ],
+          "ok": true
+        },
+        {
+          "n": 7,
+          "label": "Input zona",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] input[data-field=\"zone\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 8,
+          "label": "Pill status konfigurasi",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] .settings-card-header .status-pill"
+          ],
+          "ok": true
+        },
+        {
+          "n": 9,
+          "label": "Tombol Nonaktifkan",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] [data-act=\"deactivate\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 10,
+          "label": "Fieldset Valve 1",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] fieldset[data-valve=\"1\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 11,
+          "label": "Mode switch bar Valve 1",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] fieldset[data-valve=\"1\"] .mode-switch-bar"
+          ],
+          "ok": true
+        },
+        {
+          "n": 12,
+          "label": "Grup mode sensor Valve 1",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] fieldset[data-valve=\"1\"] .mode-sensor"
+          ],
+          "ok": true
+        },
+        {
+          "n": 13,
+          "label": "Grup mode jadwal Valve 2",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] fieldset[data-valve=\"2\"] .mode-schedule"
+          ],
+          "ok": true
+        },
+        {
+          "n": 14,
+          "label": "Baris window jadwal Valve 2",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] fieldset[data-valve=\"2\"] .win-row"
+          ],
+          "ok": true
+        },
+        {
+          "n": 15,
+          "label": "Tambah Window Valve 2",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] fieldset[data-valve=\"2\"] [data-act=\"add-window\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 16,
+          "label": "Banner error validasi",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] .form-error"
+          ],
+          "ok": false,
+          "reason": "tidak ada elemen terlihat"
+        },
+        {
+          "n": 17,
+          "label": "Tombol Simpan Pengaturan",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] [data-act=\"save\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 18,
+          "label": "Tombol Batal Perubahan",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] [data-act=\"cancel\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 19,
+          "label": "Fieldset Valve 2",
+          "sels": [
+            ".settings-card[data-device=\"esp32-01\"] fieldset[data-valve=\"2\"]"
+          ],
+          "ok": true
+        }
+      ],
+      "viewport": {
+        "width": 1920,
+        "height": 2077
+      }
+    },
+    "07-modal-add-node": {
+      "file": "07-modal-add-node.png",
+      "note": "",
+      "boxes": [
+        {
+          "n": 1,
+          "label": "Overlay modal",
+          "sels": [
+            "#modal-add-node"
+          ],
+          "ok": true
+        },
+        {
+          "n": 2,
+          "label": "Dialog",
+          "sels": [
+            "#modal-add-node .modal-dialog"
+          ],
+          "ok": true
+        },
+        {
+          "n": 3,
+          "label": "Judul modal",
+          "sels": [
+            "#modal-add-node .modal-title"
+          ],
+          "ok": true
+        },
+        {
+          "n": 4,
+          "label": "Deskripsi modal",
+          "sels": [
+            "#modal-add-node .modal-desc"
+          ],
+          "ok": true
+        },
+        {
+          "n": 5,
+          "label": "Input ID Node",
+          "sels": [
+            "#new-node-id"
+          ],
+          "ok": true
+        },
+        {
+          "n": 6,
+          "label": "Hint format ID",
+          "sels": [
+            "#modal-add-node .form-hint"
+          ],
+          "ok": true
+        },
+        {
+          "n": 7,
+          "label": "Input Zona",
+          "sels": [
+            "#new-node-zone"
+          ],
+          "ok": true
+        },
+        {
+          "n": 8,
+          "label": "Banner error modal",
+          "sels": [
+            "#modal-add-node-err"
+          ],
+          "ok": false,
+          "reason": "tidak ada elemen terlihat"
+        },
+        {
+          "n": 9,
+          "label": "Tombol Batal",
+          "sels": [
+            "#btn-cancel-add-node"
+          ],
+          "ok": true
+        },
+        {
+          "n": 10,
+          "label": "Tombol Simpan Node",
+          "sels": [
+            "#btn-submit-add-node"
+          ],
+          "ok": true
+        }
+      ],
+      "viewport": {
+        "width": 1920,
+        "height": 2077
+      }
+    },
+    "08-node-disabled": {
+      "file": "08-node-disabled.png",
+      "note": "",
+      "boxes": [
+        {
+          "n": 1,
+          "label": "Kartu esp32-02 (nonaktif)",
+          "sels": [
+            ".settings-card[data-device=\"esp32-02\"]"
+          ],
+          "ok": true
+        },
+        {
+          "n": 2,
+          "label": "Pill Dinonaktifkan",
+          "sels": [
+            ".settings-card[data-device=\"esp32-02\"] .settings-card-header .status-pill"
+          ],
+          "ok": true
+        },
+        {
+          "n": 3,
+          "label": "Tombol Aktifkan",
+          "sels": [
+            ".settings-card[data-device=\"esp32-02\"] [data-act=\"activate\"]"
+          ],
+          "ok": true
+        }
+      ],
+      "viewport": {
+        "width": 1920,
+        "height": 2117
+      }
+    },
+    "09-logout": {
+      "file": "09-logout.png",
+      "note": "Klik tombol 2 -> dialog confirm() native browser; OK -> POST /api/logout (static/index.html:2550) -> kembali ke /login.",
+      "boxes": [
+        {
+          "n": 1,
+          "label": "Topbar",
+          "sels": [
+            "header.topbar"
+          ],
+          "ok": true
+        },
+        {
+          "n": 2,
+          "label": "Tombol Keluar",
+          "sels": [
+            "#logout-btn"
+          ],
+          "ok": true
+        }
+      ],
+      "viewport": {
+        "width": 1920,
+        "height": 2077
+      }
+    }
+  }
+}

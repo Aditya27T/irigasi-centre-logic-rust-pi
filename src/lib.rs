@@ -10,7 +10,7 @@ pub mod twin;
 use anyhow::{Context, Result};
 use chrono::Local;
 use rumqttc::{Event, Packet, QoS};
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 
 use config::Config;
 use decision::rules::Action;
@@ -19,7 +19,13 @@ use model::sensor::SensorReading;
 use twin::Twin;
 
 pub async fn run(config: Config) -> Result<()> {
-    let db = storage::db::open(&config.storage.sqlite_path).context("membuka database SQLite")?;
+    let mut db = storage::db::open(&config.storage.sqlite_path).context("membuka database SQLite")?;
+    if storage::settings::seed_from_config(&mut db, &config.nodes)? {
+        info!("node_settings kosong -> di-seed dari {} node di config.toml", config.nodes.len());
+    } else if !config.nodes.is_empty() {
+        info!("node_settings sudah terisi -> section [[nodes]] di config.toml diabaikan");
+    }
+    let nodes: config::SharedNodes = std::sync::Arc::new(std::sync::RwLock::new(storage::settings::load_nodes(&db)?));
 
     let (client, mut eventloop) = mqtt::client::connect(&config.mqtt);
 
@@ -32,8 +38,9 @@ pub async fn run(config: Config) -> Result<()> {
         let state = dashboard::AppState {
             db: std::sync::Arc::new(std::sync::Mutex::new(dashboard_db)),
             mqtt: client.clone(),
-            nodes: std::sync::Arc::new(config.nodes.clone()),
+            nodes: nodes.clone(),
             twin: twin.clone(),
+            sessions: std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashSet::new())),
         };
         let bind_addr = config.dashboard.bind_addr.clone();
         tokio::spawn(async move {
@@ -53,8 +60,6 @@ pub async fn run(config: Config) -> Result<()> {
             }
         };
 
-        // Subscription perlu dikirim lagi setiap broker menerima koneksi baru.
-        // Setelah reconnect, clean session MQTT tidak menyimpan subscription sebelumnya.
         if matches!(event, Event::Incoming(Packet::ConnAck(_))) {
             if let Err(err) = mqtt::client::subscribe_sensors(&client).await {
                 error!("Gagal subscribe ulang ke sensor MQTT: {err}");
@@ -93,14 +98,34 @@ pub async fn run(config: Config) -> Result<()> {
 
         twin.lock().unwrap().update_from_reading(&reading, received_at);
 
-        let Some(node_cfg) = config.nodes.iter().find(|n| n.id == device_id) else {
-            warn!("Tidak ada konfigurasi node untuk device_id={device_id}, reading dicatat tapi tidak dievaluasi");
-            continue;
+        let node_cfg = {
+            let guard = nodes.read().unwrap();
+            match guard.iter().find(|n| n.id == device_id) {
+                Some(n) if n.enabled => n.clone(),
+                Some(_) => {
+                    debug!("device_id={device_id} nonaktif, reading dicatat tapi tidak dievaluasi");
+                    continue;
+                }
+                None => { warn!("Tidak ada konfigurasi node untuk device_id={device_id}, reading dicatat tapi tidak dievaluasi"); continue; }
+            }
         };
 
+        // Lepas manual override yang sudah lewat expires_at SEBELUM evaluasi. Tanpa ini
+        // expires_at cuma kosmetik di UI: engine hanya melihat source=="manual" dan menahan
+        // otomasi selamanya sampai ada POST .../release eksplisit. Dilakukan di sini (bukan di
+        // rules.rs) supaya rules tetap fungsi murni, dan hasilnya ikut terpersist lewat
+        // upsert_twin_state di akhir iterasi.
+        let released = twin
+            .lock()
+            .unwrap()
+            .release_expired_manual(&device_id, chrono::Utc::now().timestamp());
+        for valve_id in released {
+            info!("Manual override valve {valve_id} pada {device_id} kedaluwarsa, kembali ke otomatis");
+        }
+
         let zone_state = twin.lock().unwrap().get(&device_id).cloned().unwrap_or_default();
-        let now = Local::now().time();
-        let outcomes = decision::rules::evaluate(&reading, node_cfg, &zone_state, now);
+        let now = Local::now().naive_local();
+        let outcomes = decision::rules::evaluate(&reading, &node_cfg, &zone_state, now);
 
         for outcome in outcomes {
             let command_id = if outcome.action != Action::None {
@@ -137,6 +162,16 @@ pub async fn run(config: Config) -> Result<()> {
                                 None
                             };
                             twin.lock().unwrap().set_valve_state(&device_id, outcome.valve_id, is_open, "auto", expires_at);
+                            // Tandai window sudah dijalankan HANYA setelah publish sukses --
+                            // kalau publish gagal, window belum benar-benar jalan dan harus
+                            // boleh dicoba lagi di pembacaan berikutnya.
+                            if let Some(key) = &outcome.schedule_window_key {
+                                twin.lock().unwrap().set_schedule_window_ran(
+                                    &device_id,
+                                    outcome.valve_id,
+                                    key.clone(),
+                                );
+                            }
                             info!(
                                 "Command dikirim: {topic} action={:?} valve_id={} reason={}",
                                 outcome.action, outcome.valve_id, outcome.reason

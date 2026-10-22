@@ -3,278 +3,1482 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Irigasi Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Irigasi Smart Dashboard — Digital Twin & Automation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --accent: #3b7f57;
-    --accent-hover: #286342;
-    --amber: #b7791f;
-    --amber-hover: #925d16;
-    --red: #c75b57;
-    --muted: #5e7063;
-    --muted-light: #87968a;
-    --bg: #f3f8f2;
-    --card: #fffefa;
-    --border: #dbe8dc;
-    --border-strong: #c4d7c6;
-    --ink: #203529;
-    --shadow-sm: 0 1px 2px 0 rgba(34, 73, 46, 0.06);
-    --shadow-md: 0 8px 18px -8px rgba(34, 73, 46, 0.18), 0 3px 6px -3px rgba(34, 73, 46, 0.08);
-    --radius-lg: 16px;
-    --radius-md: 12px;
-    --radius-sm: 8px;
+    --brand-50: #edf8f1;
+    --brand-100: #d4eedb;
+    --brand-200: #addcb9;
+    --brand-500: #2d8a55;
+    --brand-600: #236f44;
+    --brand-700: #1c5836;
+    --brand-800: #16432b;
+    --accent: var(--brand-500);
+    --accent-hover: var(--brand-600);
+    --accent-light: var(--brand-50);
+    --accent-border: var(--brand-200);
+
+    --amber-50: #fef8ee;
+    --amber-100: #fcedd2;
+    --amber-500: #d97706;
+    --amber-600: #b45309;
+
+    --blue-50: #eff6ff;
+    --blue-100: #dbeafe;
+    --blue-500: #2563eb;
+    --blue-600: #1d4ed8;
+
+    --red-50: #fef2f2;
+    --red-100: #fee2e2;
+    --red-500: #ef4444;
+    --red-600: #dc2626;
+
+    --bg-page: #f4f7f4;
+    --card: #ffffff;
+    --card-subtle: #f9fbf9;
+    --border: #e2ebe2;
+    --border-light: #edf2ed;
+    --border-strong: #c8d9c8;
     
-    --toggle-brand: #438b61;
-    --toggle-brand-light: #eef8ef;
-    --toggle-bg-off: #d9e6da;
+    --ink-900: #132419;
+    --ink-700: #2e4334;
+    --ink-500: #57705e;
+    --ink-400: #829a88;
+    --ink-200: #c1d1c4;
+
+    --shadow-xs: 0 1px 2px rgba(18, 38, 25, 0.04);
+    --shadow-sm: 0 2px 4px -1px rgba(18, 38, 25, 0.06), 0 1px 2px -1px rgba(18, 38, 25, 0.04);
+    --shadow-md: 0 8px 18px -4px rgba(18, 38, 25, 0.08), 0 3px 6px -2px rgba(18, 38, 25, 0.04);
+    --shadow-lg: 0 16px 28px -6px rgba(18, 38, 25, 0.1), 0 6px 12px -3px rgba(18, 38, 25, 0.05);
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 22px;
+    --radius-full: 9999px;
+
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
-  
-  * { box-sizing: border-box; }
-  
+
+  *, *::before, *::after { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    padding: 20px;
+    background: var(--bg-page);
+    color: var(--ink-900);
+    font-family: var(--font-sans);
+    padding: 24px;
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+  /* Keyframe Animations */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulseSubtle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.15); } }
+  @keyframes waterFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+  .page-container {
+    max-width: 1360px;
+    margin: 0 auto;
   }
 
-  section { animation: fadeIn 0.4s ease-out forwards; }
+  section { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-  /* Topbar */
-  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-  .topbar h1 { font-size: 1.5rem; margin: 0; font-weight: 700; letter-spacing: -0.02em; }
-  .clock { font-family: ui-monospace, monospace; color: var(--muted); font-size: 0.9rem; font-weight: 600; background: var(--card); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); }
-  
-  .tabs { display: inline-flex; background: #e3efe4; border-radius: var(--radius-md); padding: 4px; gap: 2px; }
-  .tabs button {
-    border: none; background: transparent; padding: 8px 16px; border-radius: var(--radius-sm);
-    font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--muted); transition: all 0.3s ease;
+  /* App Header / Topbar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 14px 20px;
+    box-shadow: var(--shadow-sm);
+    gap: 16px;
+    flex-wrap: wrap;
   }
-  .tabs button:hover { color: var(--ink); }
-  .tabs button.active { background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); }
 
-  /* KPI Cards */
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-  .kpi { 
-    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); 
-    padding: 20px; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s ease;
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
-  .kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-  .kpi .label { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .kpi .value { font-size: 2rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
-  .kpi .sub { font-size: 0.8rem; color: var(--muted); margin-top: 6px; font-weight: 500; }
 
-  /* Node Cards */
-  .nodes { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-  .node-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
-  
-  .node-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 18px 20px; background: var(--card); border-bottom: 1px solid var(--border); }
-  .node-head .zone { font-size: 0.75rem; font-weight: 700; color: var(--muted-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-  .node-head .device { font-size: 1.25rem; font-weight: 800; color: var(--ink); }
-  .status-badge { font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 20px; white-space: nowrap; display: inline-block; }
-  
-  .node-body { padding: 20px; background: #f7fbf6; }
-  
-  /* Soil Progress */
-  .soil-row { margin-bottom: 16px; }
-  .soil-row .top { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 8px; font-weight: 600; color: var(--ink); }
-  .soil-row .top .verdict { font-weight: 700; }
-  .bar-track { background: #dfeade; border-radius: 10px; height: 10px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(34,73,46,0.06); }
-  .bar-fill { height: 100%; border-radius: 10px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s; }
-  
-  /* Metrics Grid */
-  .metrics { 
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 12px; 
-    margin: 20px 0; 
-    font-size: 0.8rem; 
-    color: var(--muted); 
-    background: var(--card); 
-    padding: 16px; 
-    border-radius: var(--radius-md); 
+  .brand-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(45, 138, 85, 0.3);
+    flex-shrink: 0;
+  }
+
+  .brand-title-wrap h1 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.02em;
+    color: var(--ink-900);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .brand-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--brand-700);
+    background: var(--brand-50);
+    border: 1px solid var(--brand-200);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .brand-title-wrap p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--ink-500);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .live-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: var(--brand-500);
+    box-shadow: 0 0 0 2px rgba(45, 138, 85, 0.2);
+    animation: pulseSubtle 2s infinite ease-in-out;
+  }
+
+  .nav-tabs {
+    display: inline-flex;
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .nav-tabs button {
+    border: none;
+    background: transparent;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--ink-500);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav-tabs button svg {
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .nav-tabs button:hover {
+    color: var(--ink-900);
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .nav-tabs button.active {
+    background: var(--card);
+    color: var(--brand-700);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .nav-tabs button.active svg {
+    opacity: 1;
+    color: var(--brand-600);
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .clock-pill {
+    font-family: var(--font-mono);
+    color: var(--ink-700);
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    padding: 7px 12px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-logout {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--ink-700);
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+  }
+
+  .btn-logout:hover {
+    background: var(--red-50);
+    color: var(--red-600);
+    border-color: var(--red-100);
+  }
+
+  /* KPI Summary Grid - Compact & Clean */
+  .kpis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    box-shadow: var(--shadow-xs);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--border-strong);
+  }
+
+  .kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .kpi-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .kpi-icon-pill {
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand-50);
+    color: var(--brand-600);
+  }
+
+  .kpi-card.amber .kpi-icon-pill { background: var(--amber-50); color: var(--amber-600); }
+  .kpi-card.blue .kpi-icon-pill { background: var(--blue-50); color: var(--blue-600); }
+
+  .kpi-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 2px;
+  }
+
+  .kpi-value {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--ink-900);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .kpi-sub {
+    font-size: 0.74rem;
+    color: var(--ink-500);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Compact Schedule Banner Bar */
+  .schedule-widget {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .schedule-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    flex-shrink: 0;
+  }
+
+  .schedule-header h3 {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink-700);
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .schedule-rows-grid {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  .schedule-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    background: var(--card-subtle);
+    border: 1px solid var(--border);
+    font-size: 0.75rem;
+    line-height: 1.3;
+    transition: background-color 0.2s;
+  }
+
+  .schedule-item.is-running {
+    background: var(--brand-50);
+    border-color: var(--brand-200);
+    color: var(--brand-700);
+    font-weight: 700;
+  }
+
+  .schedule-item-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .schedule-item-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ink-900);
+  }
+
+  .schedule-item-window {
+    font-size: 0.72rem;
+    color: var(--ink-500);
+  }
+
+  .schedule-item-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .status-pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  .status-pill.online { background: var(--brand-50); color: var(--brand-700); border: 1px solid var(--brand-200); }
+  .status-pill.offline { background: var(--red-50); color: var(--red-600); border: 1px solid var(--red-100); }
+  .status-pill.active { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+  .status-pill.idle { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+  /* Section Title Bar */
+  .section-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .section-bar h2 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--ink-900);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  /* Node Cards Grid */
+  .nodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+  }
+
+  .node-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .node-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .node-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 18px 22px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .node-zone-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 2px;
+  }
+
+  .node-device-id {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--ink-900);
+    letter-spacing: -0.01em;
+  }
+
+  .node-last-seen {
+    margin-top: 6px;
+    font-size: 0.72rem;
+    color: var(--ink-400);
+    font-weight: 600;
+  }
+
+  .node-card-body {
+    padding: 22px;
+    background: var(--card-subtle);
+  }
+
+  /* Sensor Gauges & Metrics */
+  .soil-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .soil-gauge-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+  }
+
+  .soil-gauge-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .soil-gauge-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink-700);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .soil-val-badge {
+    font-size: 0.85rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-track {
+    position: relative;
+    background: #e5ece6;
+    border-radius: var(--radius-full);
+    height: 10px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s;
+  }
+
+  .threshold-hint {
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--ink-400);
+    font-weight: 500;
+  }
+
+  .metrics-tiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .metric-tile {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .metric-tile-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    background: #f1f5f9;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .metric-tile-body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-tile-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-500);
+  }
+
+  .metric-tile-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--ink-900);
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Valve Module Controls */
+  .valves-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .valve-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    background: var(--card);
+    transition: all 0.25s ease;
+  }
+
+  .valve-card.is-open {
+    border-color: var(--brand-500);
+    background: linear-gradient(180deg, #f3faf5 0%, #eaf6ee 100%);
+    box-shadow: 0 4px 14px rgba(45, 138, 85, 0.12);
+  }
+
+  .valve-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .valve-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .valve-name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .valve-name-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--ink-900);
+  }
+
+  .valve-subtext {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink-500);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .valve-subtext.is-active {
+    color: var(--brand-600);
+    font-weight: 700;
+  }
+
+  .valve-badge-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .micro-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--bg-page);
+    color: var(--ink-700);
+    border: 1px solid var(--border);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .micro-badge.manual-held {
+    background: var(--amber-50);
+    color: var(--amber-600);
+    border-color: var(--amber-100);
+  }
+
+  .micro-badge.flowing {
+    background: #dcfce7;
+    color: #15803d;
+    border-color: #bbf7d0;
+  }
+
+  /* Custom Toggle Switch */
+  .switch-control-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card-subtle);
+    padding: 4px 6px 4px 10px;
+    border-radius: var(--radius-full);
     border: 1px solid var(--border);
   }
-  .metrics span { display: flex; flex-direction: column; gap: 4px; font-weight: 500; }
-  .metrics b { color: var(--ink); font-weight: 800; font-size: 1.1rem; }
 
-  /* Valve Controls (Improved Layout) */
-  .valve-row { 
-    border: 1px solid var(--border); 
-    border-radius: var(--radius-md); 
-    padding: 18px; 
-    margin-top: 16px; 
-    background: var(--card); 
-    transition: all 0.3s ease;
-  }
-  
-  /* Visual Cue for Active Valve */
-  .valve-row.is-open {
-    border-color: rgba(67, 139, 97, 0.45);
-    background: var(--toggle-brand-light);
-    box-shadow: 0 4px 12px rgba(67, 139, 97, 0.12);
+  .switch-label-text {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--ink-400);
+    letter-spacing: 0.04em;
   }
 
-  .valve-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-  .valve-title { display: flex; flex-direction: column; gap: 4px; }
-  .valve-name { font-size: 1.1rem; font-weight: 800; color: var(--ink); }
-  .valve-status { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
-  .valve-status.active { color: var(--toggle-brand); }
-  
-  .valve-badges { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-  .badge { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-  
-  .toggle-group { display: flex; align-items: center; gap: 10px; background: var(--card); padding: 6px 10px; border-radius: 30px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-  .toggle-label { font-size: 0.8rem; font-weight: 800; min-width: 28px; text-align: right; transition: color 0.3s; }
-  
-  /* Buttons */
-  .controls-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 16px; }
-  
-  button { font-family: inherit; }
-  .dur-chip, .act-btn, .chip {
-    border: 1px solid var(--border-strong); background: var(--card); color: var(--ink); padding: 8px 14px; 
-    border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; justify-content: center; min-height: 38px; box-shadow: var(--shadow-sm);
+  .switch-label-text.active {
+    color: var(--brand-600);
   }
-  .dur-chip:hover, .act-btn:hover, .chip:hover { border-color: var(--accent); background: #f1f8f1; }
-  .dur-chip:active, .act-btn:active, .chip:active { transform: scale(0.96); }
-  
-  /* Active Duration Chip uses dark ink instead of accent to avoid clashing with the toggle */
-  .dur-chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .dur-chip.on:hover { background: #31513b; }
-  
-  .act-btn.release { background: var(--card); color: var(--amber); border-color: var(--amber); }
-  .act-btn.release:hover { background: #fff8e7; }
 
-  /* --- Toggle Switch (Sesuai Referensi Gambar) --- */
-  .toggle-switch {
+  .btn-toggle-switch {
     position: relative;
-    width: 60px;
-    height: 34px;
-    border-radius: 34px;
-    background: var(--toggle-bg-off);
+    width: 52px;
+    height: 30px;
+    border-radius: 30px;
+    background: #cbd5e1;
     border: none;
     cursor: pointer;
     outline: none;
-    transition: background 0.3s ease;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-    display: inline-block;
-    flex-shrink: 0;
+    transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0;
+    flex-shrink: 0;
   }
-  .toggle-switch::after {
+
+  .btn-toggle-switch::after {
     content: '';
     position: absolute;
     top: 3px;
-    left: 4px;
-    width: 28px;
-    height: 28px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    background: var(--toggle-brand);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+    background: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .toggle-switch.on {
-    background: var(--toggle-brand);
-    box-shadow: none;
+
+  .btn-toggle-switch.is-on {
+    background: var(--brand-500);
   }
-  .toggle-switch.on::after {
-    transform: translateX(24px);
+
+  .btn-toggle-switch.is-on::after {
+    transform: translateX(22px);
+  }
+
+  .valve-controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-top: 1px solid var(--border-light);
+    padding-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .dur-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dur-chip {
+    border: 1px solid var(--border);
     background: var(--card);
+    color: var(--ink-700);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
   }
 
-  /* Data Page Styles */
-  h2 { font-size: 1.2rem; margin: 24px 0 16px; font-weight: 700; }
-  .filters { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-  .filter-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .filter-group span.label { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-right: 4px; }
-  .chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .dur-chip:hover {
+    border-color: var(--brand-500);
+    color: var(--brand-700);
+    background: var(--brand-50);
+  }
 
-  .stats { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 16px; font-size: 0.9rem; color: var(--muted); background: var(--card); padding: 16px 20px; border-radius: var(--radius-md); border: 1px solid var(--border); }
-  .stats b { color: var(--ink); font-weight: 800; }
+  .dur-chip.is-selected {
+    background: var(--ink-900);
+    color: #ffffff;
+    border-color: var(--ink-900);
+    box-shadow: var(--shadow-xs);
+  }
 
-  table { border-collapse: separate; border-spacing: 0; width: 100%; background: var(--card); font-size: 0.85rem; }
-  th, td { border-bottom: 1px solid var(--border); padding: 14px 16px; text-align: left; white-space: nowrap; }
-  th { background: #f1f7f1; font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; top: 0; z-index: 10; border-top: 1px solid var(--border); }
-  tr:hover td { background: #eef7ee; }
-  .table-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
-  
-  .muted { color: var(--muted); }
-  .download-btn { margin-top: 16px; background: var(--ink); color: white; border: none; padding: 10px 20px; font-size: 0.9rem; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; }
-  .download-btn:hover { background: #31513b; }
-  
-  [hidden] { display: none !important; }
+  .btn-release-auto {
+    border: 1px solid var(--amber-500);
+    background: var(--amber-50);
+    color: var(--amber-600);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
 
-  @media (max-width: 600px) {
-    .topbar { flex-direction: column; align-items: flex-start; }
-    .metrics { grid-template-columns: 1fr 1fr; }
-    .metrics span:last-child { grid-column: span 2; }
-    .controls-footer { flex-direction: column; align-items: stretch; }
-    .controls-footer .dur-wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
-    .controls-footer .act-btn { width: 100%; }
+  .btn-release-auto:hover {
+    background: #fde68a;
+    color: #92400e;
+  }
+
+  /* Data / History Table View */
+  .filters-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 18px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .filter-chips {
+    display: inline-flex;
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .chip-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink-500);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .chip-btn:hover {
+    color: var(--ink-900);
+  }
+
+  .chip-btn.is-active {
+    background: var(--card);
+    color: var(--ink-900);
+    font-weight: 700;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .table-stats-bar {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 20px;
+    margin-bottom: 18px;
+    font-size: 0.85rem;
+    color: var(--ink-500);
+  }
+
+  .table-stats-bar span b {
+    color: var(--ink-900);
+    font-weight: 800;
+    margin-left: 4px;
+  }
+
+  .table-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+    overflow: hidden;
+    max-height: 560px;
+    overflow-y: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8faf8;
+    color: var(--ink-500);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    backdrop-filter: blur(8px);
+  }
+
+  td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--ink-700);
+    font-variant-numeric: tabular-nums;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background: #f4fbf5;
+  }
+
+  .btn-download-csv {
+    margin-top: 18px;
+    background: var(--brand-600);
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .btn-download-csv:hover {
+    background: var(--brand-700);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  /* Settings View */
+  .settings-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .btn-primary {
+    background: var(--brand-600);
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .btn-primary:hover {
+    background: var(--brand-700);
+  }
+
+  .btn-secondary {
+    background: var(--card);
+    color: var(--ink-700);
+    border: 1px solid var(--border);
+    padding: 9px 16px;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .btn-secondary:hover {
+    background: var(--bg-page);
+    border-color: var(--border-strong);
+  }
+
+  .settings-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .settings-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 20px;
+  }
+
+  .settings-device-title {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--ink-900);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .valve-fieldset {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    margin-top: 16px;
+    background: var(--card-subtle);
+  }
+
+  .valve-fieldset legend {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--ink-900);
+    padding: 0 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .mode-switch-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink-700);
+  }
+
+  .form-hint {
+    font-size: 0.7rem;
+    color: var(--ink-400);
+    margin-top: 2px;
+  }
+
+  input[type="text"], input[type="number"], input[type="time"] {
+    font-family: inherit;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 0.88rem;
+    background: #ffffff;
+    color: var(--ink-900);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  input:focus {
+    border-color: var(--brand-500);
+    box-shadow: 0 0 0 3px rgba(45, 138, 85, 0.15);
+  }
+
+  .win-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+    background: #ffffff;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+  }
+
+  .btn-del-window {
+    background: var(--red-50);
+    color: var(--red-600);
+    border: 1px solid var(--red-100);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-del-window:hover {
+    background: var(--red-500);
+    color: #fff;
+  }
+
+  .form-error {
+    color: var(--red-600);
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin: 12px 0;
+    background: var(--red-50);
+    border: 1px solid var(--red-100);
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* [hidden] bawaan browser (display:none) kalah oleh display:flex di atas --
+     hasilnya kotak error kosong selalu tampak. Aturan ini mengembalikan perilaku
+     semestinya saat atribut hidden dipasang. */
+  .form-error[hidden] {
+    display: none;
+  }
+
+  /* Toast Notification Container */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: #ffffff;
+    color: var(--ink-900);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    box-shadow: var(--shadow-lg);
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto;
+    animation: fadeIn 0.25s ease-out;
+    min-width: 280px;
+    max-width: 400px;
+  }
+
+  .toast.success { border-left: 4px solid var(--brand-500); }
+  .toast.error { border-left: 4px solid var(--red-500); }
+  .toast.info { border-left: 4px solid var(--blue-500); }
+
+  /* Modern Modal Dialog */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(19, 36, 25, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .modal-overlay[hidden] { display: none !important; }
+
+  .modal-dialog {
+    background: #ffffff;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 440px;
+    padding: 24px;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+
+  .modal-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0 0 6px;
+    color: var(--ink-900);
+  }
+
+  .modal-desc {
+    font-size: 0.85rem;
+    color: var(--ink-500);
+    margin: 0 0 18px;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    body { padding: 14px; }
+    .topbar { flex-direction: column; align-items: stretch; gap: 14px; }
+    .brand-group { justify-content: space-between; }
+    .topbar-actions { justify-content: space-between; }
+    .nav-tabs { width: 100%; overflow-x: auto; justify-content: space-between; }
+    .nav-tabs button { flex: 1; justify-content: center; padding: 8px 10px; font-size: 0.78rem; }
+    .nodes-grid { grid-template-columns: 1fr; }
+    .kpis-grid { grid-template-columns: 1fr; }
+    .valve-controls-bar { flex-direction: column; align-items: stretch; }
+    .dur-picker-group { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
+    .btn-release-auto { width: 100%; justify-content: center; }
   }
 </style>
 </head>
 <body>
+<div class="page-container">
 
-<div class="topbar">
-  <h1>Irigasi Dashboard</h1>
-  <div style="display:flex; align-items:center; gap:16px; flex-wrap: wrap;">
-    <span class="clock" id="clock"></span>
-    <div class="tabs">
-      <button data-page="control" class="active">Kontrol &amp; Pantau</button>
-      <button data-page="data">Data &amp; Unduh</button>
+  <!-- Topbar Header -->
+  <header class="topbar">
+    <div class="brand-group">
+      <div class="brand-icon-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12c0-3.328 1.625-6.278 4.125-8.08"></path>
+          <path d="M12 6v6l4 2"></path>
+        </svg>
+      </div>
+      <div class="brand-title-wrap">
+        <h1>
+          Irigasi Pintar
+          <span class="brand-tag">Digital Twin</span>
+        </h1>
+        <p>
+          <span class="live-dot"></span>
+          Telemetri &amp; Kontrol Presisi Real-time
+        </p>
+      </div>
+    </div>
+
+    <nav class="nav-tabs">
+      <button data-page="control" class="active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+        Kontrol &amp; Pantau
+      </button>
+      <button data-page="data">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        Data &amp; Analitik
+      </button>
+      <button data-page="settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Pengaturan
+      </button>
+    </nav>
+
+    <div class="topbar-actions">
+      <div class="clock-pill">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="clock">--:--:--</span>
+      </div>
+      <button id="logout-btn" class="btn-logout" title="Keluar dari sesi akun">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Keluar
+      </button>
+    </div>
+  </header>
+
+  <!-- Page 1: Kontrol & Pantau -->
+  <section id="page-control">
+    <!-- Key Performance Indicators -->
+    <div class="kpis-grid" id="kpis">
+      <div class="kpi-card"><div class="kpi-label">Memuat Sistem...</div></div>
+    </div>
+
+    <!-- Compact Schedule Bar -->
+    <div class="schedule-widget" id="schedule-card">
+      <div class="schedule-header">
+        <h3>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Jadwal Siram:
+        </h3>
+      </div>
+      <div id="schedule-rows" class="schedule-rows-grid">
+        <span style="color:var(--ink-400); font-size:0.75rem;">Memuat jadwal...</span>
+      </div>
+    </div>
+
+    <!-- Section Title: Kontrol Zona -->
+    <div class="section-bar">
+      <h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Kontrol &amp; Telemetri Zona
+      </h2>
+      <span style="font-size:0.75rem; color:var(--ink-400); font-weight:600;">Status Terkini Sensor &amp; Aktuator</span>
+    </div>
+
+    <!-- Nodes Cards Grid -->
+    <div class="nodes-grid" id="nodes"></div>
+  </section>
+
+  <!-- Page 2: Data & Analitik -->
+  <section id="page-data" hidden>
+    <div class="filters-card">
+      <div class="filter-item">
+        <span class="filter-label">Filter Node:</span>
+        <div class="filter-chips" id="filter-node"></div>
+      </div>
+      <div class="filter-item">
+        <span class="filter-label">Jenis Log:</span>
+        <div class="filter-chips" id="filter-kind"></div>
+      </div>
+      <div class="filter-item">
+        <span class="filter-label">Rentang Waktu:</span>
+        <div class="filter-chips" id="filter-range"></div>
+      </div>
+    </div>
+
+    <div class="table-stats-bar" id="data-stats">
+      <span>Memuat data analitik...</span>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>Node / Perangkat</th>
+            <th>Jenis Rekaman</th>
+            <th>Soil Moisture 1</th>
+            <th>Soil Moisture 2</th>
+            <th>Suhu 1</th>
+            <th>Suhu 2</th>
+            <th>Keterangan / Keputusan</th>
+          </tr>
+        </thead>
+        <tbody id="data-rows"></tbody>
+      </table>
+    </div>
+
+    <button class="btn-download-csv" id="download-csv">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Unduh Riwayat CSV
+    </button>
+  </section>
+
+  <!-- Page 3: Pengaturan Node -->
+  <section id="page-settings" hidden>
+    <div class="settings-toolbar">
+      <div>
+        <h2 style="margin:0; font-size:1.2rem; font-weight:800; color:var(--ink-900);">Konfigurasi Node &amp; Valve</h2>
+        <p style="margin:4px 0 0; font-size:0.82rem; color:var(--ink-500);">Kelola ambang batas sensor, automasi jadwal, dan status perangkat di lapangan.</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn-primary" id="btn-add-node">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Tambah Node Baru
+        </button>
+        <button class="btn-secondary" id="btn-reload-settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Muat Ulang
+        </button>
+      </div>
+    </div>
+    <div id="settings-nodes"></div>
+  </section>
+
+</div>
+
+<!-- Modal: Tambah Node Baru -->
+<div class="modal-overlay" id="modal-add-node" hidden>
+  <div class="modal-dialog">
+    <h3 class="modal-title">Tambah Node Baru</h3>
+    <p class="modal-desc">Daftarkan pengontrol irigasi baru ke dalam jaringan Digital Twin.</p>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label" for="new-node-id">ID Node (Wajib)</label>
+      <input type="text" id="new-node-id" placeholder="contoh: node-03" style="width:100%;">
+      <span class="form-hint">Gunakan huruf, angka, tanda hubung (-), atau garis bawah (_).</span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="new-node-zone">Zona / Lokasi (Opsional)</label>
+      <input type="text" id="new-node-zone" placeholder="contoh: Greenhouse B" style="width:100%;">
+    </div>
+    <div class="form-error" id="modal-add-node-err" hidden></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="btn-cancel-add-node">Batal</button>
+      <button class="btn-primary" id="btn-submit-add-node">Simpan Node</button>
     </div>
   </div>
 </div>
 
-<section id="page-control">
-  <div class="kpis" id="kpis"></div>
-  <div class="nodes" id="nodes"></div>
-</section>
-
-<section id="page-data" hidden>
-  <div class="filters">
-    <div class="filter-group"><span class="label">Node:</span><span id="filter-node"></span></div>
-    <div class="filter-group"><span class="label">Jenis:</span><span id="filter-kind"></span></div>
-    <div class="filter-group"><span class="label">Rentang:</span><span id="filter-range"></span></div>
-  </div>
-  <div class="stats" id="data-stats"></div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Waktu</th><th>Node</th><th>Jenis</th><th>Soil 1</th><th>Soil 2</th><th>Temp 1</th><th>Temp 2</th><th>Catatan</th></tr></thead>
-      <tbody id="data-rows"></tbody>
-    </table>
-  </div>
-  <button class="download-btn" id="download-csv">Unduh CSV</button>
-</section>
+<!-- Floating Toast Container -->
+<div class="toast-container" id="toasts"></div>
 
 <script>
+// --- KONSTANTA & TRANSLASI ---
 const REASON_TEXT = {
-  soil_moisture_below_threshold: 'Kelembapan di bawah ambang',
-  close_condition_met: 'Syarat tutup terpenuhi',
+  soil_moisture_below_threshold: 'Kelembapan di bawah ambang batas',
+  close_condition_met: 'Kondisi tutup terpenuhi',
   no_trigger: 'Tidak ada pemicu',
-  manual_override: 'Override operator',
-  scheduled_window: 'Jadwal terjadwal',
+  manual_override: 'Override manual operator',
+  scheduled_window: 'Sesuai jadwal otomatis'
 };
 
 let nodeConfigs = {};
 let dFilters = { node: 'Semua', kind: 'Semua', rangeHours: 24 };
 let dataRows = [];
-let weatherState = null; // diisi loadWeather(), dibaca renderKpis() setiap tick 4s tanpa fetch ulang
+let weatherState = null;
+let lastNodesForKpi = [];
+let activeScheduleCache = null;
+let activeScheduleFetchedAt = 0;
 
-// Lokasi: Malang, Jawa Timur -- sesuaikan lat/lon di sini kalau lahan pindah kota.
 const WEATHER_LAT = -7.9666;
 const WEATHER_LON = 112.6326;
-const WEATHER_REFRESH_MS = 15 * 60 * 1000; // cuaca tidak perlu se-real-time data sensor
+const WEATHER_REFRESH_MS = 15 * 60 * 1000;
 
 const WEATHER_CODES = {
   0: { icon: '☀️', label: 'Cerah' },
@@ -282,38 +1486,118 @@ const WEATHER_CODES = {
   2: { icon: '⛅', label: 'Berawan Sebagian' },
   3: { icon: '☁️', label: 'Mendung' },
   45: { icon: '🌫️', label: 'Berkabut' },
-  48: { icon: '🌫️', label: 'Berkabut' },
+  48: { icon: '🌫️', label: 'Berkabut Tebal' },
   51: { icon: '🌦️', label: 'Gerimis Ringan' },
   53: { icon: '🌦️', label: 'Gerimis' },
   55: { icon: '🌦️', label: 'Gerimis Lebat' },
-  56: { icon: '🌧️', label: 'Gerimis Beku' },
-  57: { icon: '🌧️', label: 'Gerimis Beku' },
   61: { icon: '🌧️', label: 'Hujan Ringan' },
-  63: { icon: '🌧️', label: 'Hujan' },
+  63: { icon: '🌧️', label: 'Hujan Sedang' },
   65: { icon: '🌧️', label: 'Hujan Lebat' },
-  66: { icon: '🌧️', label: 'Hujan Beku' },
-  67: { icon: '🌧️', label: 'Hujan Beku' },
-  71: { icon: '🌨️', label: 'Salju Ringan' },
-  73: { icon: '🌨️', label: 'Salju' },
-  75: { icon: '🌨️', label: 'Salju Lebat' },
-  77: { icon: '🌨️', label: 'Butiran Salju' },
   80: { icon: '🌧️', label: 'Hujan Lokal' },
   81: { icon: '🌧️', label: 'Hujan Lokal Lebat' },
   82: { icon: '⛈️', label: 'Hujan Sangat Lebat' },
-  85: { icon: '🌨️', label: 'Hujan Salju' },
-  86: { icon: '🌨️', label: 'Hujan Salju Lebat' },
   95: { icon: '⛈️', label: 'Badai Petir' },
   96: { icon: '⛈️', label: 'Badai Petir + Es' },
-  99: { icon: '⛈️', label: 'Badai Petir + Es' },
+  99: { icon: '⛈️', label: 'Badai Petir + Es' }
 };
+
 function weatherInfo(code) {
-  return WEATHER_CODES[code] || { icon: '🌡️', label: 'Tidak diketahui' };
+  return WEATHER_CODES[code] || { icon: '🌡️', label: 'Kondisi Normal' };
 }
 
+// --- TOAST NOTIFICATION UTILS ---
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toasts');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  
+  let iconSvg = '';
+  if (type === 'success') {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d8a55" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+  } else if (type === 'error') {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+  } else {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+  }
+
+  toast.innerHTML = `${iconSvg}<span>${message}</span>`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(10px)';
+    toast.style.transition = 'all 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+// --- FORMATTING UTILS ---
+function fmtTime(epochSeconds) {
+  if (epochSeconds == null) return '-';
+  return new Date(epochSeconds * 1000).toLocaleString('id-ID', {
+    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function fmtNum(n, digits) {
+  return (n == null) ? '-' : Number(n).toFixed(digits ?? 1);
+}
+
+function mmss(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const m = Math.floor(sec / 60), r = sec % 60;
+  return m + ':' + String(r).padStart(2, '0');
+}
+
+function hms(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return (h ? h + 'j ' : '') + (m ? m + 'm ' : '') + s + 'd';
+}
+
+function reasonLabel(reason) {
+  return REASON_TEXT[reason] || reason || '-';
+}
+
+function valveModeInfo(cfg, valveNum) {
+  const v = cfg && cfg['valve_' + valveNum];
+  if (!v) return { mode: 'sensor', threshold: null, thresholdKind: 'open', schedule: null };
+  if (v.mode === 'schedule') return { mode: 'schedule', threshold: v.close_soil_min_pct, thresholdKind: 'close', schedule: v.schedule || [] };
+  return { mode: 'sensor', threshold: v.open_soil_max_pct, thresholdKind: 'open', schedule: null };
+}
+
+function scheduleLabel(windows) {
+  if (!windows || !windows.length) return '';
+  return windows.map(w => `${w.start}–${w.end}`).join(', ');
+}
+
+// --- TAB NAVIGATION ---
+function switchPage(page) {
+  document.getElementById('page-control').hidden = page !== 'control';
+  document.getElementById('page-data').hidden = page !== 'data';
+  document.getElementById('page-settings').hidden = page !== 'settings';
+  document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  if (page === 'data') loadDataPage();
+  if (page === 'settings') loadSettingsPage();
+}
+
+document.querySelectorAll('.nav-tabs button').forEach(b => b.addEventListener('click', () => switchPage(b.dataset.page)));
+
+// --- CLOCK & TIMERS ---
+function tickClock() {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const dateStr = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
+  document.getElementById('clock').textContent = `${dateStr} · ${timeStr}`;
+  if (activeScheduleCache) renderScheduleCard(activeScheduleCache);
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+// --- WEATHER API ---
 async function loadWeather() {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LAT}&longitude=${WEATHER_LON}` +
-      `&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&timezone=Asia%2FJakarta`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LAT}&longitude=${WEATHER_LON}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&timezone=Asia%2FJakarta`;
     const res = await fetch(url);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
@@ -323,60 +1607,8 @@ async function loadWeather() {
   }
   renderKpis(lastNodesForKpi);
 }
-let lastNodesForKpi = [];
 
-function fmtTime(epochSeconds) {
-  if (epochSeconds == null) return '-';
-  return new Date(epochSeconds * 1000).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-}
-function fmtNum(n, digits) {
-  return (n == null) ? '-' : Number(n).toFixed(digits ?? 1);
-}
-function mmss(sec) {
-  sec = Math.max(0, Math.floor(sec));
-  const m = Math.floor(sec / 60), r = sec % 60;
-  return m + ':' + String(r).padStart(2, '0');
-}
-function reasonLabel(reason) { return REASON_TEXT[reason] || reason || '-'; }
-
-function valveModeInfo(cfg, valveNum) {
-  const v = cfg && cfg['valve_' + valveNum];
-  if (!v) return { mode: 'sensor', threshold: null, thresholdKind: 'open', schedule: null };
-  if (v.mode === 'schedule') {
-    return { mode: 'schedule', threshold: v.close_soil_min_pct, thresholdKind: 'close', schedule: v.schedule || [] };
-  }
-  return { mode: 'sensor', threshold: v.open_soil_max_pct, thresholdKind: 'open', schedule: null };
-}
-
-function isWithinSchedule(windows) {
-  if (!windows || !windows.length) return false;
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  return windows.some(w => {
-    const [sh, sm] = (w.start || '').split(':').map(Number);
-    const [eh, em] = (w.end || '').split(':').map(Number);
-    if ([sh, sm, eh, em].some(Number.isNaN)) return false;
-    const startMin = sh * 60 + sm, endMin = eh * 60 + em;
-    return nowMin >= startMin && nowMin < endMin;
-  });
-}
-
-function scheduleLabel(windows) {
-  if (!windows || !windows.length) return '';
-  return windows.map(w => `${w.start}–${w.end}`).join(', ');
-}
-
-function switchPage(page) {
-  document.getElementById('page-control').hidden = page !== 'control';
-  document.getElementById('page-data').hidden = page !== 'data';
-  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.page === page));
-  if (page === 'data') loadDataPage();
-}
-document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => switchPage(b.dataset.page)));
-
-function tickClock() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
-setInterval(tickClock, 1000); tickClock();
-
+// --- CONFIG CACHE & LOAD ---
 async function ensureNodeConfigs(nodes) {
   await Promise.all(nodes.map(async n => {
     if (nodeConfigs[n.device_id]) return;
@@ -387,10 +1619,16 @@ async function ensureNodeConfigs(nodes) {
   }));
 }
 
+function applyConfigToCache(node) {
+  nodeConfigs[node.id] = node;
+}
+
+// --- KPI RENDERING ---
 function renderKpis(nodes) {
   lastNodesForKpi = nodes;
   const onlineCount = nodes.filter(n => n.online).length;
-  let openCount = 0, totalValves = 0, dryCount = 0, water = 0;
+  let openCount = 0, totalValves = 0, dryCount = 0;
+
   nodes.forEach(n => {
     [1, 2].forEach(vn => {
       totalValves++;
@@ -398,181 +1636,394 @@ function renderKpis(nodes) {
     });
     const info1 = valveModeInfo(nodeConfigs[n.device_id], 1);
     const info2 = valveModeInfo(nodeConfigs[n.device_id], 2);
-    const needs1 = info1.mode === 'sensor'
-      ? (info1.threshold != null && n.last_soil_moisture_1_pct != null && n.last_soil_moisture_1_pct < info1.threshold)
-      : isWithinSchedule(info1.schedule);
-    const needs2 = info2.mode === 'sensor'
-      ? (info2.threshold != null && n.last_soil_moisture_2_pct != null && n.last_soil_moisture_2_pct < info2.threshold)
-      : isWithinSchedule(info2.schedule);
-    if (needs1 || needs2) dryCount++;
-    water += n.water_balance_mm || 0;
+    const needs1 = info1.mode === 'sensor' ? (info1.threshold != null && n.last_soil_moisture_1_pct != null && n.last_soil_moisture_1_pct < info1.threshold) : false;
+    const needs2 = info2.mode === 'sensor' ? (info2.threshold != null && n.last_soil_moisture_2_pct != null && n.last_soil_moisture_2_pct < info2.threshold) : false;
+    let schedNeeds = false;
+    if (activeScheduleCache && activeScheduleCache.items) {
+      activeScheduleCache.items.forEach(it => {
+        if (it.device_id === n.device_id && it.state === 'running') schedNeeds = true;
+      });
+    }
+    if (needs1 || needs2 || schedNeeds) dryCount++;
   });
 
-  const kpis = [
-    { label: 'Status Node', value: `${onlineCount}/${nodes.length}`, sub: onlineCount < nodes.length ? 'Ada node terputus' : 'Semua sistem online' },
-    { label: 'Valve Aktif', value: `${openCount}/${totalValves}`, sub: 'Mesin sedang berjalan' },
-    { label: 'Perlu Disiram', value: String(dryCount), sub: 'Kondisi kering / jadwal tiba' },
-    { label: 'Total Debit Air', value: `${water.toFixed(1)} mm`, sub: 'Akumulasi seluruh zona' },
-  ];
-  document.getElementById('kpis').innerHTML = kpis.map(k => `
-    <div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>
-  `).join('') + weatherKpiHtml();
+  const kpiOnlineHtml = `
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-label">Status Jaringan Node</span>
+        <div class="kpi-icon-pill">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        </div>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-value">${onlineCount}</span>
+        <span style="font-size:1.1rem; color:var(--ink-400); font-weight:700;">/ ${nodes.length}</span>
+      </div>
+      <div class="kpi-sub">
+        ${onlineCount === nodes.length ? '<span style="color:var(--brand-600)">● Semua node normal terkoneksi</span>' : '<span style="color:var(--amber-600)">▲ Sebagian node offline</span>'}
+      </div>
+    </div>
+  `;
+
+  const kpiValvesHtml = `
+    <div class="kpi-card ${openCount > 0 ? 'blue' : ''}">
+      <div class="kpi-header">
+        <span class="kpi-label">Katup / Valve Aktif</span>
+        <div class="kpi-icon-pill">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-value" style="${openCount > 0 ? 'color:var(--blue-600);' : ''}">${openCount}</span>
+        <span style="font-size:1.1rem; color:var(--ink-400); font-weight:700;">/ ${totalValves}</span>
+      </div>
+      <div class="kpi-sub">
+        ${openCount > 0 ? `<span style="color:var(--blue-600); font-weight:700;">💧 ${openCount} saluran air sedang mengalir</span>` : 'Seluruh katup tertutup (standby)'}
+      </div>
+    </div>
+  `;
+
+  const kpiMoistureHtml = `
+    <div class="kpi-card ${dryCount > 0 ? 'amber' : ''}">
+      <div class="kpi-header">
+        <span class="kpi-label">Kondisi Lahan</span>
+        <div class="kpi-icon-pill">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        </div>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-value" style="${dryCount > 0 ? 'color:var(--amber-600);' : ''}">${dryCount}</span>
+        <span style="font-size:0.9rem; color:var(--ink-500); font-weight:600;">Zona Kering/Jadwal</span>
+      </div>
+      <div class="kpi-sub">
+        ${dryCount > 0 ? '<span style="color:var(--amber-600); font-weight:700;">Membutuhkan penyiraman</span>' : '<span style="color:var(--brand-600);">Kelembapan tanah optimal</span>'}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('kpis').innerHTML = kpiOnlineHtml + kpiValvesHtml + kpiMoistureHtml + weatherKpiHtml();
 }
 
 function weatherKpiHtml() {
   if (!weatherState) {
-    return `<div class="kpi"><div class="label">Cuaca</div><div class="value" style="font-size:1.1rem; color:var(--muted)">Memuat&hellip;</div></div>`;
+    return `
+      <div class="kpi-card">
+        <div class="kpi-header"><span class="kpi-label">Cuaca Lokal</span></div>
+        <div class="kpi-value" style="font-size:1.2rem; color:var(--ink-400);">Memuat data cuaca...</div>
+      </div>
+    `;
   }
   if (!weatherState.ok) {
-    return `<div class="kpi"><div class="label">Cuaca</div><div class="value" style="font-size:1.1rem; color:var(--muted)">Tidak tersedia</div><div class="sub">Gagal ambil data weather API</div></div>`;
+    return `
+      <div class="kpi-card">
+        <div class="kpi-header"><span class="kpi-label">Cuaca Lokal</span></div>
+        <div class="kpi-value" style="font-size:1rem; color:var(--ink-400);">Offline</div>
+        <div class="kpi-sub">Gagal memuat Open-Meteo</div>
+      </div>
+    `;
   }
+
   const w = weatherInfo(weatherState.weather_code);
   const rain = weatherState.precipitation > 0;
+
   return `
-    <div class="kpi">
-      <div class="label">Cuaca &middot; Malang</div>
-      <div class="value" style="display:flex; align-items:baseline; gap:8px;">
-        <span style="font-size:1.6rem; line-height:1;">${w.icon}</span>
-        <span>${fmtNum(weatherState.temperature_2m, 0)}&deg;C</span>
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-label">Cuaca · Malang</span>
+        <div class="kpi-icon-pill" style="font-size:1.2rem; background:transparent;">${w.icon}</div>
       </div>
-      <div class="sub">${w.label} &middot; Lembap udara ${fmtNum(weatherState.relative_humidity_2m, 0)}%${rain ? ' &middot; <span style="color:var(--amber); font-weight:700">Hujan terdeteksi</span>' : ''}</div>
+      <div class="kpi-value-row">
+        <span class="kpi-value">${fmtNum(weatherState.temperature_2m, 0)}°</span>
+        <span style="font-size:1.2rem; font-weight:700; color:var(--ink-500);">C</span>
+      </div>
+      <div class="kpi-sub">
+        ${w.label} · Lembap ${fmtNum(weatherState.relative_humidity_2m, 0)}%
+        ${rain ? '· <b style="color:var(--amber-600)">Hujan Terdeteksi</b>' : ''}
+      </div>
     </div>
   `;
 }
 
+// --- ACTIVE SCHEDULE BANNER ---
+async function loadActiveSchedule() {
+  try {
+    const res = await fetch('/api/schedule/active');
+    if (!res.ok) return;
+    const data = await res.json();
+    activeScheduleCache = data;
+    activeScheduleFetchedAt = Date.now() / 1000;
+    renderScheduleCard(data);
+  } catch (e) {}
+}
+
+function renderScheduleCard(data) {
+  const el = document.getElementById('schedule-rows');
+  if (!data || !data.items || data.items.length === 0) {
+    el.innerHTML = '<span style="color:var(--ink-400); font-size:0.75rem;">Mode sensor aktif (tidak ada jadwal waktu khusus).</span>';
+    return;
+  }
+
+  const elapsed = Date.now() / 1000 - activeScheduleFetchedAt;
+  const nodeMap = {};
+  lastNodesForKpi.forEach(n => nodeMap[n.device_id] = n);
+
+  el.innerHTML = data.items.map(it => {
+    const win = it.window ? `${it.window.start}–${it.window.end}` : '';
+    const isRunning = it.state === 'running';
+
+    if (isRunning) {
+      const rem = Math.max(0, (it.seconds_remaining ?? 0) - elapsed);
+      return `
+        <div class="schedule-item is-running">
+          <span class="live-dot" style="width:6px; height:6px; background:#15803d;"></span>
+          <span class="schedule-item-title">${it.zone || it.device_id} · V${it.valve_id}</span>
+          <span class="schedule-item-window">Mengalir [${win}] · sisa <b>${hms(rem)}</b></span>
+        </div>
+      `;
+    } else {
+      const until = Math.max(0, (it.seconds_until_start ?? 0) - elapsed);
+      return `
+        <div class="schedule-item">
+          <span class="schedule-item-title">${it.zone || it.device_id} · V${it.valve_id}</span>
+          <span class="schedule-item-window">[${win}] dlm <b>${hms(until)}</b>${it.tomorrow ? ' (besok)' : ''}</span>
+        </div>
+      `;
+    }
+  }).join('');
+}
+
+// --- GAUGE & SENSOR COMPONENT ---
+function soilBarHtml(label, pct, info) {
+  const threshold = info ? info.threshold : null;
+  const kind = info ? info.thresholdKind : 'open';
+  
+  let color = 'var(--brand-500)';
+  let verdictText = 'Ideal';
+  let verdictColor = 'var(--brand-600)';
+
+  if (pct == null) {
+    verdictText = 'Tidak ada sensor';
+    verdictColor = 'var(--ink-400)';
+    color = '#cbd5e1';
+  } else if (threshold != null) {
+    if (kind === 'open') {
+      const low = pct < threshold;
+      if (low) {
+        color = 'var(--amber-500)';
+        verdictText = 'Kering (Perlu Air)';
+        verdictColor = 'var(--amber-600)';
+      } else {
+        color = 'var(--brand-500)';
+        verdictText = 'Kelembapan Cukup';
+        verdictColor = 'var(--brand-600)';
+      }
+    } else {
+      const wet = pct >= threshold;
+      if (wet) {
+        color = 'var(--brand-500)';
+        verdictText = 'Cukup Basah';
+        verdictColor = 'var(--brand-600)';
+      } else {
+        color = 'var(--amber-500)';
+        verdictText = 'Belum Cukup Basah';
+        verdictColor = 'var(--amber-600)';
+      }
+    }
+  }
+
+  const width = pct == null ? 0 : Math.max(2, Math.min(100, pct));
+  const thresholdNotice = threshold != null ? `Ambang trigger: ${threshold}%` : 'Ambang trigger: Standar';
+
+  return `
+    <div class="soil-gauge-item">
+      <div class="soil-gauge-top">
+        <span class="soil-gauge-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          ${label}
+        </span>
+        <span class="soil-val-badge" style="color: ${verdictColor}">
+          ${pct == null ? '-' : pct.toFixed(0) + '%'}
+          <small style="font-weight:600; font-size:0.75rem; margin-left:4px;">· ${verdictText}</small>
+        </span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width: ${width}%; background: ${color};"></div>
+      </div>
+      <div class="threshold-hint">
+        <span>0%</span>
+        <span>${thresholdNotice}</span>
+        <span>100%</span>
+      </div>
+    </div>
+  `;
+}
+
+// --- VALVE CONTROLLER HTML ---
 function valveRowHtml(node, valveNum, modeInfo) {
   const open = node['valve_' + valveNum + '_open'];
   const source = node['valve_' + valveNum + '_source'];
   const expiresAt = node['valve_' + valveNum + '_expires_at'];
   const manual = source === 'manual';
   const now = Date.now() / 1000;
-  
-  let stateLine = open ? 'Mengalir' : 'Siaga (Tertutup)';
+
+  let stateTitle = open ? 'Mengalir' : 'Siaga (Tertutup)';
+  let countdownNotice = '';
+
   if (open && expiresAt != null) {
     const remaining = expiresAt - now;
-    if (remaining > 0) stateLine = 'Mengalir &middot; Berhenti dlm ' + mmss(remaining);
+    if (remaining > 0) {
+      countdownNotice = ` · Berhenti dlm ${mmss(remaining)}`;
+    }
   }
-  
+
   const durations = [60, 120, 300];
   const isSchedule = modeInfo && modeInfo.mode === 'schedule';
   const scheduleText = isSchedule ? scheduleLabel(modeInfo.schedule) : '';
-  
-  // Highlight warna teks jika toggle hidup
-  const toggleTextColor = open ? 'var(--toggle-brand)' : 'var(--muted)';
-  
+
   return `
-    <div class="valve-row ${open ? 'is-open' : ''}" data-device="${node.device_id}" data-valve="${valveNum}">
-      
-      <div class="valve-header">
-        <div class="valve-title">
-          <span class="valve-name">Valve ${valveNum}</span>
-          <span class="valve-status ${open ? 'active' : ''}">${stateLine}</span>
+    <div class="valve-card ${open ? 'is-open' : ''}" data-device="${node.device_id}" data-valve="${valveNum}">
+      <div class="valve-card-top">
+        <div class="valve-meta">
+          <div class="valve-name-wrap">
+            <span class="valve-name-title">Valve ${valveNum}</span>
+            ${open ? '<span class="micro-badge flowing">💧 AKTIF</span>' : ''}
+          </div>
+          <span class="valve-subtext ${open ? 'is-active' : ''}">
+            ${stateTitle}${countdownNotice}
+          </span>
         </div>
-        
-        <div class="toggle-group">
-          <span class="toggle-label" style="color: ${toggleTextColor};">${open ? 'ON' : 'OFF'}</span>
-          <button class="toggle-switch ${open ? 'on' : ''}" data-action="${open ? 'close' : 'open'}" title="${open ? 'Matikan Valve' : 'Nyalakan Valve'}"></button>
+
+        <div class="switch-control-wrap">
+          <span class="switch-label-text ${open ? 'active' : ''}">${open ? 'ON' : 'OFF'}</span>
+          <button class="btn-toggle-switch ${open ? 'is-on' : ''}" data-action="${open ? 'close' : 'open'}" title="${open ? 'Tutup Katup Air' : 'Buka Katup Air'}"></button>
         </div>
       </div>
-      
-      <div class="valve-badges">
-        <span class="badge" style="background:${open ? 'var(--card)' : '#eef6ee'}; color:var(--muted); border: 1px solid var(--border);">${isSchedule ? 'Mode Jadwal' : 'Mode Sensor'}</span>
-        <span class="badge" style="background:${manual ? '#fff1c9' : (open ? 'var(--card)' : '#eef6ee')}; color:${manual ? 'var(--amber)' : 'var(--muted)'}; border: 1px solid ${manual ? 'transparent' : 'var(--border)'};">${manual ? 'Manual (Ditahan)' : 'Otomatis'}</span>
+
+      <div class="valve-badge-row">
+        <span class="micro-badge">
+          ${isSchedule ? '🕒 Mode Jadwal Waktu' : '🌱 Mode Sensor Ambang'}
+        </span>
+        <span class="micro-badge ${manual ? 'manual-held' : ''}">
+          ${manual ? '⚠️ Override Manual' : '⚡ Otomasi Aktif'}
+        </span>
+        ${scheduleText ? `<span class="micro-badge">Jadwal: ${scheduleText}</span>` : ''}
       </div>
-      
-      ${scheduleText ? `<div style="margin-bottom:14px; font-size:0.85rem; color: var(--ink);">Jadwal aktif: <b>${scheduleText}</b></div>` : ''}
-      
-      <div class="controls-footer">
-        <div class="dur-wrap" style="display:flex; gap:8px;">
-          ${durations.map(d => `<button class="dur-chip" data-dur="${d}">${d < 60 ? d + ' dtk' : (d / 60) + ' mnt'}</button>`).join('')}
+
+      <div class="valve-controls-bar">
+        <div class="dur-picker-group">
+          ${durations.map((d, i) => `
+            <button class="dur-chip ${i === 1 ? 'is-selected' : ''}" data-dur="${d}">
+              ${d < 60 ? d + ' dtk' : (d / 60) + ' mnt'}
+            </button>
+          `).join('')}
         </div>
-        ${manual ? `<button class="act-btn release" data-action="release">Kembalikan ke Auto</button>` : ''}
+
+        ${manual ? `
+          <button class="btn-release-auto" data-action="release">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+            Kembalikan ke Auto
+          </button>
+        ` : ''}
       </div>
-      
     </div>
   `;
 }
 
-function soilBarHtml(label, pct, info) {
-  const threshold = info ? info.threshold : null;
-  const kind = info ? info.thresholdKind : 'open';
-  let color = 'var(--accent)';
-  let verdict = '';
-  if (threshold != null && pct != null) {
-    if (kind === 'open') {
-      const low = pct < threshold;
-      color = low ? 'var(--amber)' : 'var(--accent)';
-      verdict = low ? ' &middot; Butuh Air' : ' &middot; Ideal';
-    } else {
-      const wet = pct >= threshold;
-      color = wet ? 'var(--accent)' : 'var(--amber)';
-      verdict = wet ? ' &middot; Cukup Basah' : '';
-    }
-  }
-  const width = pct == null ? 0 : Math.max(2, Math.min(100, pct));
-  return `
-    <div class="soil-row">
-      <div class="top"><span>${label}</span><span class="verdict" style="color:${color}">${pct == null ? '-' : pct.toFixed(0) + '%'}${verdict}</span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${width}%; background:${color}"></div></div>
-    </div>
-  `;
-}
-
+// --- RENDER NODES ---
 function renderNodes(nodes) {
-  document.getElementById('nodes').innerHTML = nodes.map(n => {
+  const container = document.getElementById('nodes');
+  if (!nodes.length) {
+    container.innerHTML = `
+      <div style="grid-column:1/-1; text-align:center; padding:50px 20px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-xl);">
+        <p style="color:var(--ink-500); font-weight:600; margin-bottom:14px;">Belum ada node yang terdaftar dalam sistem irigasi.</p>
+        <button class="btn-primary" onclick="switchPage('settings')">+ Daftarkan Node Pertama</button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = nodes.map(n => {
     const cfg = nodeConfigs[n.device_id];
-    const info1 = valveModeInfo(cfg, 1), info2 = valveModeInfo(cfg, 2);
-    const statusBg = n.online ? '#dcefe0' : '#f8e2e0';
-    const statusFg = n.online ? 'var(--accent-hover)' : 'var(--red)';
-    const statusText = n.online ? 'Terkoneksi' : 'Offline';
+    const info1 = valveModeInfo(cfg, 1);
+    const info2 = valveModeInfo(cfg, 2);
+
+    const statusBadge = n.online
+      ? '<span class="status-pill online"><span class="live-dot"></span>Online</span>'
+      : '<span class="status-pill offline">Offline</span>';
+
     return `
       <div class="node-card">
-        <div class="node-head">
-          <div><div class="zone">ZONA: ${n.zone || '-'}</div><div class="device">${n.device_id}</div></div>
-          <div style="text-align:right">
-            <span class="status-badge" style="background:${statusBg}; color:${statusFg}">${statusText}</span>
-            <div style="margin-top:8px; font-size: 0.7rem; color: var(--muted); font-weight: 600;">Terakhir: ${fmtTime(n.last_reading_at)}</div>
+        <div class="node-card-head">
+          <div>
+            <div class="node-zone-tag">${n.zone ? 'ZONA: ' + n.zone : 'ZONA UMUM'}</div>
+            <div class="node-device-id">${n.device_id}</div>
+          </div>
+          <div style="text-align:right;">
+            ${statusBadge}
+            <div class="node-last-seen">Update: ${fmtTime(n.last_reading_at)}</div>
           </div>
         </div>
-        <div class="node-body">
-          ${soilBarHtml('Kelembapan Tanah 1', n.last_soil_moisture_1_pct, info1)}
-          ${soilBarHtml('Kelembapan Tanah 2', n.last_soil_moisture_2_pct, info2)}
-          <div class="metrics">
-            <span>Suhu 1 <b>${fmtNum(n.last_temp_1_c)}&deg;C</b></span>
-            <span>Suhu 2 <b>${fmtNum(n.last_temp_2_c)}&deg;C</b></span>
-            <span>Debit Air <b>${fmtNum(n.water_balance_mm)} mm</b></span>
+
+        <div class="node-card-body">
+          <div class="soil-container">
+            ${soilBarHtml('Kelembapan Tanah Sensor 1', n.last_soil_moisture_1_pct, info1)}
+            ${soilBarHtml('Kelembapan Tanah Sensor 2', n.last_soil_moisture_2_pct, info2)}
           </div>
-          ${valveRowHtml(n, 1, info1)}
-          ${valveRowHtml(n, 2, info2)}
+
+          <div class="metrics-tiles">
+            <div class="metric-tile">
+              <div class="metric-tile-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+              </div>
+              <div class="metric-tile-body">
+                <span class="metric-tile-label">Suhu Sensor 1</span>
+                <span class="metric-tile-value">${fmtNum(n.last_temp_1_c)}°C</span>
+              </div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-tile-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+              </div>
+              <div class="metric-tile-body">
+                <span class="metric-tile-label">Suhu Sensor 2</span>
+                <span class="metric-tile-value">${fmtNum(n.last_temp_2_c)}°C</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="valves-section">
+            ${valveRowHtml(n, 1, info1)}
+            ${valveRowHtml(n, 2, info2)}
+          </div>
         </div>
       </div>
     `;
-  }).join('') || `<p class="muted">Belum ada node terkonfigurasi.</p>`;
+  }).join('');
 }
 
+// --- NODE EVENT DELEGATION ---
 document.getElementById('nodes').addEventListener('click', async (ev) => {
+  // Dur chip selector
   const durBtn = ev.target.closest('.dur-chip');
   if (durBtn) {
-    document.querySelectorAll(`.valve-row[data-device="${durBtn.closest('.valve-row').dataset.device}"][data-valve="${durBtn.closest('.valve-row').dataset.valve}"] .dur-chip`)
-      .forEach(b => b.classList.toggle('on', b === durBtn));
+    const valveRow = durBtn.closest('.valve-card');
+    valveRow.querySelectorAll('.dur-chip').forEach(b => b.classList.toggle('is-selected', b === durBtn));
     return;
   }
-  
-  const actBtn = ev.target.closest('.act-btn, .toggle-switch');
-  if (!actBtn) return;
-  
-  if (!actBtn.classList.contains('toggle-switch')) {
-    actBtn.style.transform = 'scale(0.9)';
-    setTimeout(() => actBtn.style.transform = '', 150);
-  }
 
-  const row = actBtn.closest('.valve-row');
-  const device = row.dataset.device, valve = row.dataset.valve;
+  // Action toggle / release button
+  const actBtn = ev.target.closest('.btn-release-auto, .btn-toggle-switch');
+  if (!actBtn) return;
+
+  const row = actBtn.closest('.valve-card');
+  const device = row.dataset.device;
+  const valve = row.dataset.valve;
   const action = actBtn.dataset.action;
-  const durChip = row.querySelector('.dur-chip.on');
+  const durChip = row.querySelector('.dur-chip.is-selected');
   const duration = durChip ? Number(durChip.dataset.dur) : 120;
 
   try {
+    actBtn.disabled = true;
     let res;
     if (action === 'release') {
       res = await fetch(`/api/nodes/${encodeURIComponent(device)}/valves/${valve}/release`, { method: 'POST' });
@@ -580,61 +2031,94 @@ document.getElementById('nodes').addEventListener('click', async (ev) => {
       res = await fetch(`/api/nodes/${encodeURIComponent(device)}/command`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ valve_id: Number(valve), action, duration_s: duration }),
+        body: JSON.stringify({ valve_id: Number(valve), action, duration_s: duration })
       });
     }
+
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      alert(`Gagal: ${body.error || res.statusText}`);
+      showToast(`Gagal: ${body.error || res.statusText}`, 'error');
+      actBtn.disabled = false;
       return;
     }
+
+    showToast(
+      action === 'release'
+        ? `Valve ${valve} dikembalikan ke mode Otomatis`
+        : `Perintah ${action.toUpperCase()} dikirim ke Valve ${valve} (${duration}s)`,
+      'success'
+    );
     await loadNodes();
   } catch (e) {
-    alert('Gagal menghubungi server: ' + e.message);
+    showToast('Koneksi server terganggu: ' + e.message, 'error');
+  } finally {
+    actBtn.disabled = false;
   }
 });
 
+// --- LOAD MAIN DASHBOARD ---
 async function loadNodes() {
-  const res = await fetch('/api/nodes');
-  const nodes = await res.json();
-  await ensureNodeConfigs(nodes);
-  renderKpis(nodes);
-  renderNodes(nodes);
-  return nodes;
+  try {
+    const res = await fetch('/api/nodes');
+    if (res.status === 401) {
+      location.href = '/login';
+      return [];
+    }
+    const nodes = await res.json();
+    await ensureNodeConfigs(nodes);
+    renderKpis(nodes);
+    renderNodes(nodes);
+    await loadActiveSchedule();
+    renderKpis(nodes);
+    return nodes;
+  } catch (e) {
+    console.warn('Gagal memuat status nodes:', e);
+    return [];
+  }
 }
 
-// ---- Halaman Data & Unduh ----
-
+// --- DATA & CSV SECTION ---
 function chipsHtml(values, selected) {
-  return values.map(v => `<button class="chip ${v === selected ? 'on' : ''}" data-value="${v}">${v}</button>`).join('');
+  return values.map(v => `
+    <button class="chip-btn ${v === selected ? 'is-active' : ''}" data-value="${v}">${v}</button>
+  `).join('');
 }
 
 function renderDataFilters(nodeIds) {
   document.getElementById('filter-node').innerHTML = chipsHtml(['Semua', ...nodeIds], dFilters.node);
   document.getElementById('filter-kind').innerHTML = chipsHtml(['Semua', 'Pembacaan', 'Keputusan'], dFilters.kind);
-  const rangeLabels = { 6: '6 Jam', 24: '24 Jam', 168: '7 Hari' };
-  document.getElementById('filter-range').innerHTML = Object.entries(rangeLabels).map(([h, label]) =>
-    `<button class="chip ${Number(h) === dFilters.rangeHours ? 'on' : ''}" data-value="${h}">${label}</button>`).join('');
+  const rangeLabels = { 6: '6 Jam Terakhir', 24: '24 Jam', 168: '7 Hari' };
+  document.getElementById('filter-range').innerHTML = Object.entries(rangeLabels).map(([h, label]) => `
+    <button class="chip-btn ${Number(h) === dFilters.rangeHours ? 'is-active' : ''}" data-value="${h}">${label}</button>
+  `).join('');
 }
 
 document.getElementById('filter-node').addEventListener('click', (ev) => {
-  const btn = ev.target.closest('.chip'); if (!btn) return;
-  dFilters.node = btn.dataset.value; renderDataTable();
-  document.querySelectorAll('#filter-node .chip').forEach(b => b.classList.toggle('on', b === btn));
+  const btn = ev.target.closest('.chip-btn');
+  if (!btn) return;
+  dFilters.node = btn.dataset.value;
+  renderDataTable();
+  document.querySelectorAll('#filter-node .chip-btn').forEach(b => b.classList.toggle('is-active', b === btn));
 });
+
 document.getElementById('filter-kind').addEventListener('click', (ev) => {
-  const btn = ev.target.closest('.chip'); if (!btn) return;
-  dFilters.kind = btn.dataset.value; renderDataTable();
-  document.querySelectorAll('#filter-kind .chip').forEach(b => b.classList.toggle('on', b === btn));
+  const btn = ev.target.closest('.chip-btn');
+  if (!btn) return;
+  dFilters.kind = btn.dataset.value;
+  renderDataTable();
+  document.querySelectorAll('#filter-kind .chip-btn').forEach(b => b.classList.toggle('is-active', b === btn));
 });
+
 document.getElementById('filter-range').addEventListener('click', (ev) => {
-  const btn = ev.target.closest('.chip'); if (!btn) return;
-  dFilters.rangeHours = Number(btn.dataset.value); renderDataTable();
-  document.querySelectorAll('#filter-range .chip').forEach(b => b.classList.toggle('on', b === btn));
+  const btn = ev.target.closest('.chip-btn');
+  if (!btn) return;
+  dFilters.rangeHours = Number(btn.dataset.value);
+  renderDataTable();
+  document.querySelectorAll('#filter-range .chip-btn').forEach(b => b.classList.toggle('is-active', b === btn));
 });
 
 async function loadDataPage() {
-  const nodesRes = await fetch('/api/nodes');
+  const nodesRes = await fetch('/api/nodes?include_disabled=true');
   const nodes = await nodesRes.json();
   const nodeIds = nodes.map(n => n.device_id);
   renderDataFilters(nodeIds);
@@ -642,18 +2126,20 @@ async function loadDataPage() {
   const perNode = await Promise.all(nodeIds.map(async id => {
     const [rRes, dRes] = await Promise.all([
       fetch(`/api/nodes/${encodeURIComponent(id)}/readings?limit=300`),
-      fetch(`/api/nodes/${encodeURIComponent(id)}/decisions?limit=300`),
+      fetch(`/api/nodes/${encodeURIComponent(id)}/decisions?limit=300`)
     ]);
     const readings = await rRes.json();
     const decisions = await dRes.json();
     const rRows = readings.map(r => ({
       ts: r.received_at, node: id, kind: 'Pembacaan',
-      s1: r.soil_moisture_1_pct, s2: r.soil_moisture_2_pct, t1: r.temp_1_c, t2: r.temp_2_c, note: '-',
+      s1: r.soil_moisture_1_pct, s2: r.soil_moisture_2_pct,
+      t1: r.temp_1_c, t2: r.temp_2_c, note: '-'
     }));
     const dRows = decisions.filter(d => d.action !== 'none').map(d => ({
       ts: d.created_at, node: id, kind: 'Keputusan',
-      s1: d.trigger_soil_moisture_pct, s2: null, t1: d.trigger_temp_c, t2: null,
-      note: `Valve ${d.valve_id} &middot; ${d.action} &middot; ${reasonLabel(d.reason)}`,
+      s1: d.trigger_soil_moisture_pct, s2: null,
+      t1: d.trigger_temp_c, t2: null,
+      note: `Valve ${d.valve_id} · ${d.action.toUpperCase()} · ${reasonLabel(d.reason)}`
     }));
     return [...rRows, ...dRows];
   }));
@@ -664,28 +2150,40 @@ async function loadDataPage() {
 
 function renderDataTable() {
   const cutoff = Date.now() / 1000 - dFilters.rangeHours * 3600;
-  const filtered = dataRows.filter(r =>
-    r.ts >= cutoff && (dFilters.node === 'Semua' || r.node === dFilters.node) && (dFilters.kind === 'Semua' || r.kind === dFilters.kind)
-  );
-
+  const filtered = dataRows.filter(r => r.ts >= cutoff && (dFilters.node === 'Semua' || r.node === dFilters.node) && (dFilters.kind === 'Semua' || r.kind === dFilters.kind));
   const decisions = filtered.filter(r => r.kind === 'Keputusan').length;
   const avg = filtered.length ? filtered.reduce((a, r) => a + (r.s1 || 0), 0) / filtered.length : 0;
+
   document.getElementById('data-stats').innerHTML = `
-    <span>Total Baris: <b>${filtered.length}</b></span>
+    <span>Total Baris Rekaman: <b>${filtered.length}</b></span>
     <span>Data Sensor: <b>${filtered.length - decisions}</b></span>
-    <span>Aksi Valve: <b>${decisions}</b></span>
+    <span>Aksi Eksekusi Valve: <b>${decisions}</b></span>
     <span>Rata-rata Kelembapan 1: <b>${avg.toFixed(1)}%</b></span>
   `;
 
   const shown = filtered.slice(0, 200);
   document.getElementById('data-rows').innerHTML = shown.map(r => `
     <tr>
-      <td>${fmtTime(r.ts)}</td><td><strong>${r.node}</strong></td>
-      <td><span style="padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; background: ${r.kind === 'Keputusan' ? '#dcefe0' : '#eef6ee'}; color: ${r.kind === 'Keputusan' ? 'var(--accent-hover)' : 'var(--muted)'}">${r.kind}</span></td>
-      <td>${fmtNum(r.s1)}%</td><td>${r.s2 == null ? '-' : fmtNum(r.s2) + '%'}</td>
-      <td>${fmtNum(r.t1)}&deg;C</td><td>${r.t2 == null ? '-' : fmtNum(r.t2) + '&deg;C'}</td><td>${r.note}</td>
+      <td>${fmtTime(r.ts)}</td>
+      <td><strong>${r.node}</strong></td>
+      <td>
+        <span class="status-pill ${r.kind === 'Keputusan' ? 'online' : 'idle'}" style="font-size:0.75rem;">
+          ${r.kind}
+        </span>
+      </td>
+      <td>${fmtNum(r.s1)}%</td>
+      <td>${r.s2 == null ? '-' : fmtNum(r.s2) + '%'}</td>
+      <td>${fmtNum(r.t1)}°C</td>
+      <td>${r.t2 == null ? '-' : fmtNum(r.t2) + '°C'}</td>
+      <td>${r.note}</td>
     </tr>
-  `).join('') || `<tr><td colspan="8" style="text-align:center; padding: 30px; color: var(--muted)">Tidak ada data pada rentang waktu atau filter ini.</td></tr>`;
+  `).join('') || `
+    <tr>
+      <td colspan="8" style="text-align:center; padding: 40px; color: var(--ink-400);">
+        Tidak ditemukan riwayat pembacaan sensor atau keputusan pada filter ini.
+      </td>
+    </tr>
+  `;
 
   document.getElementById('download-csv').onclick = () => downloadCsv(filtered);
 }
@@ -693,17 +2191,383 @@ function renderDataTable() {
 function downloadCsv(rows) {
   const head = ['waktu', 'node', 'jenis', 'soil_1_persen', 'soil_2_persen', 'temp_1_c', 'temp_2_c', 'catatan'];
   const lines = [head.join(',')].concat(rows.map(r => [
-    new Date(r.ts * 1000).toISOString(), r.node, r.kind,
-    r.s1 ?? '', r.s2 ?? '', r.t1 ?? '', r.t2 ?? '', (r.note || '').replace(/&middot;/g, '-'),
+    new Date(r.ts * 1000).toISOString(),
+    r.node,
+    r.kind,
+    r.s1 ?? '',
+    r.s2 ?? '',
+    r.t1 ?? '',
+    r.t2 ?? '',
+    `"${(r.note || '').replace(/"/g, '""')}"`
   ].join(',')));
+
   const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
   a.download = `irigasi_${dFilters.node}_${dFilters.rangeHours}jam.csv`;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  showToast('File CSV berhasil diunduh', 'success');
 }
 
-loadNodes(); setInterval(loadNodes, 4000);
-loadWeather(); setInterval(loadWeather, WEATHER_REFRESH_MS);
+// --- SETTINGS VIEW ---
+let settingsState = {};
+
+async function loadSettingsPage() {
+  const res = await fetch('/api/settings');
+  if (!res.ok) {
+    document.getElementById('settings-nodes').innerHTML = `<p style="color:var(--red-600)">Gagal memuat pengaturan: ${res.status}</p>`;
+    return;
+  }
+  const nodes = await res.json();
+  settingsState = {};
+  nodes.forEach(n => settingsState[n.id] = structuredClone(n));
+  renderSettings(nodes);
+}
+
+function renderSettings(nodes) {
+  if (!nodes.length) {
+    document.getElementById('settings-nodes').innerHTML = `
+      <div style="text-align:center; padding:40px; background:var(--card); border-radius:var(--radius-xl); border:1px solid var(--border);">
+        <p style="color:var(--ink-500); margin-bottom:14px;">Belum ada node yang terkonfigurasi.</p>
+        <button class="btn-primary" id="btn-add-node-empty">+ Tambah Node Pertama</button>
+      </div>
+    `;
+    const btn = document.getElementById('btn-add-node-empty');
+    if (btn) btn.onclick = openAddNodeModal;
+    return;
+  }
+  document.getElementById('settings-nodes').innerHTML = nodes.map(n => settingsCardHtml(n)).join('');
+}
+
+function settingsCardHtml(n) {
+  const badge = n.enabled
+    ? '<span class="status-pill online">Node Aktif</span>'
+    : '<span class="status-pill offline">Dinonaktifkan</span>';
+
+  const toggleBtn = n.enabled
+    ? `<button class="btn-secondary" data-act="deactivate" data-device="${n.id}">Nonaktifkan</button>`
+    : `<button class="btn-secondary" data-act="activate" data-device="${n.id}">Aktifkan</button>`;
+
+  return `
+    <div class="settings-card" data-device="${n.id}">
+      <div class="settings-card-header">
+        <div class="settings-device-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+          ${n.id}
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="text" data-field="zone" value="${(n.zone || '').replace(/"/g, '&quot;')}" placeholder="Nama Zona (opsional)" style="width:180px;">
+          ${badge}
+          ${toggleBtn}
+        </div>
+      </div>
+
+      ${[1, 2].map(vn => valveFieldsetHtml(n, vn)).join('')}
+
+      <div class="form-error" hidden></div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button class="btn-primary" data-act="save" data-device="${n.id}">Simpan Pengaturan</button>
+        <button class="btn-secondary" data-act="cancel" data-device="${n.id}">Batal Perubahan</button>
+      </div>
+    </div>
+  `;
+}
+
+function valveFieldsetHtml(node, valveNum) {
+  const v = node['valve_' + valveNum];
+  const isSchedule = v && v.mode === 'schedule';
+  const closeTemp = v ? v.close_temp_threshold_c : 25;
+  const closeSoil = v ? v.close_soil_min_pct : 45;
+  const maxDur = v ? v.max_open_duration_s : 120;
+  const openTemp = v && v.mode === 'sensor' ? v.open_temp_threshold_c : 27;
+  const openSoil = v && v.mode === 'sensor' ? v.open_soil_max_pct : 35;
+  const schedule = isSchedule ? (v.schedule || []) : [];
+
+  return `
+    <fieldset class="valve-fieldset" data-valve="${valveNum}">
+      <legend>⚙️ Katup Valve ${valveNum}</legend>
+      
+      <div class="mode-switch-bar">
+        <span class="filter-label">Mode Kontrol:</span>
+        <div class="filter-chips">
+          <button class="chip-btn ${!isSchedule ? 'is-active' : ''}" data-act="mode" data-device="${node.id}" data-valve="${valveNum}" data-mode="sensor">
+            Sensor Ambang (Otomatis)
+          </button>
+          <button class="chip-btn ${isSchedule ? 'is-active' : ''}" data-act="mode" data-device="${node.id}" data-valve="${valveNum}" data-mode="schedule">
+            Jadwal Waktu Tertentu
+          </button>
+        </div>
+      </div>
+
+      <div class="mode-sensor" ${isSchedule ? 'hidden' : ''}>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Suhu Pemicu Buka (°C)</label>
+            <input type="number" step="0.1" data-field="open_temp_threshold_c" value="${openTemp}">
+            <span class="form-hint">Buka jika suhu di atas nilai ini</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kelembapan Tanah Maks Buka (%)</label>
+            <input type="number" step="0.1" data-field="open_soil_max_pct" value="${openSoil}">
+            <span class="form-hint">Buka jika kelembapan tanah di bawah nilai ini</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Suhu Pemicu Tutup (°C)</label>
+          <input type="number" step="0.1" data-field="close_temp_threshold_c" value="${closeTemp}">
+          <span class="form-hint">Tutup saat suhu kembali sejuk</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kelembapan Min Tutup (%)</label>
+          <input type="number" step="0.1" data-field="close_soil_min_pct" value="${closeSoil}">
+          <span class="form-hint">Tutup jika tanah sudah cukup basah</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Durasi Maks Buka (detik)</label>
+          <input type="number" data-field="max_open_duration_s" value="${maxDur}">
+          <span class="form-hint">Batas aman timeout perlindungan pompa</span>
+        </div>
+      </div>
+
+      <div class="mode-schedule" ${!isSchedule ? 'hidden' : ''}>
+        <div style="font-size:0.8rem; font-weight:700; color:var(--ink-700); margin: 12px 0 8px;">Daftar Window Waktu Penyiraman:</div>
+        <div class="win-list">
+          ${schedule.map((w, i) => winRowHtml(w, i)).join('') || '<p class="form-hint">Belum ada window waktu.</p>'}
+        </div>
+        <button class="btn-secondary" data-act="add-window" data-device="${node.id}" data-valve="${valveNum}" style="margin-top:8px; padding:6px 12px;">
+          + Tambah Window Baru
+        </button>
+      </div>
+    </fieldset>
+  `;
+}
+
+function winRowHtml(w, idx) {
+  return `
+    <div class="win-row" data-idx="${idx}">
+      <span style="font-size:0.8rem; font-weight:600; color:var(--ink-500);">Mulai:</span>
+      <input type="time" step="60" data-field="start" value="${w.start}">
+      <span style="font-size:0.8rem; font-weight:600; color:var(--ink-500);">Selesai:</span>
+      <input type="time" step="60" data-field="end" value="${w.end}">
+      <button class="btn-del-window" data-act="del-window" title="Hapus window ini">✕</button>
+    </div>
+  `;
+}
+
+// Settings Event Delegation
+document.getElementById('settings-nodes').addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('button');
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const device = btn.dataset.device;
+
+  if (act === 'mode') {
+    const card = btn.closest('.settings-card');
+    const valve = btn.dataset.valve;
+    const mode = btn.dataset.mode;
+    const fs = card.querySelector(`fieldset[data-valve="${valve}"]`);
+    fs.querySelectorAll('[data-act="mode"]').forEach(b => b.classList.toggle('is-active', b === btn));
+    fs.querySelector('.mode-sensor').hidden = mode === 'schedule';
+    fs.querySelector('.mode-schedule').hidden = mode === 'sensor';
+  } else if (act === 'add-window') {
+    const card = btn.closest('.settings-card');
+    const valve = btn.dataset.valve;
+    const list = card.querySelector(`fieldset[data-valve="${valve}"] .win-list`);
+    if (list.querySelector('.form-hint')) list.innerHTML = '';
+    const div = document.createElement('div');
+    div.innerHTML = winRowHtml({ start: '06:00', end: '06:15' }, 99);
+    list.appendChild(div.firstElementChild);
+  } else if (act === 'del-window') {
+    btn.closest('.win-row').remove();
+  } else if (act === 'cancel') {
+    const orig = settingsState[device];
+    if (!orig) return;
+    const card = document.querySelector(`.settings-card[data-device="${device}"]`);
+    card.outerHTML = settingsCardHtml(orig);
+    showToast('Perubahan dibatalkan', 'info');
+  } else if (act === 'save') {
+    const card = btn.closest('.settings-card');
+    const errEl = card.querySelector('.form-error');
+    try {
+      const payload = buildSettingsPayload(card);
+      const preErr = clientValidate(payload);
+      if (preErr) {
+        errEl.textContent = 'Validasi: ' + preErr;
+        errEl.hidden = false;
+        return;
+      }
+      btn.disabled = true;
+      const res = await fetch(`/api/nodes/${encodeURIComponent(device)}/config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        errEl.textContent = body.error || res.statusText;
+        errEl.hidden = false;
+        btn.disabled = false;
+        return;
+      }
+      errEl.hidden = true;
+      errEl.textContent = '';
+      applyConfigToCache(body.node);
+      settingsState[device] = structuredClone(body.node);
+      card.outerHTML = settingsCardHtml(body.node);
+      showToast(`Pengaturan node ${device} berhasil disimpan!`, 'success');
+      await loadNodes();
+      await loadActiveSchedule();
+    } catch (e) {
+      errEl.textContent = e.message;
+      errEl.hidden = false;
+    } finally {
+      btn.disabled = false;
+    }
+  } else if (act === 'deactivate' || act === 'activate') {
+    const res = await fetch(`/api/nodes/${encodeURIComponent(device)}/${act}`, { method: 'POST' });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showToast(body.error || res.statusText, 'error');
+      return;
+    }
+    showToast(`Status node ${device} berhasil diubah`, 'success');
+    delete nodeConfigs[device];
+    await loadSettingsPage();
+    await loadNodes();
+  }
+});
+
+function buildSettingsPayload(card) {
+  const zone = card.querySelector('input[data-field="zone"]').value.trim() || null;
+  function valvePayload(valveNum) {
+    const fs = card.querySelector(`fieldset[data-valve="${valveNum}"]`);
+    const modeBtn = fs.querySelector('.chip-btn.is-active[data-act="mode"]');
+    const mode = modeBtn ? modeBtn.dataset.mode : 'sensor';
+    const close_temp_threshold_c = parseFloat(fs.querySelector('input[data-field="close_temp_threshold_c"]').value);
+    const close_soil_min_pct = parseFloat(fs.querySelector('input[data-field="close_soil_min_pct"]').value);
+    const max_open_duration_s = parseInt(fs.querySelector('input[data-field="max_open_duration_s"]').value, 10);
+    if (mode === 'sensor') {
+      const open_temp_threshold_c = parseFloat(fs.querySelector('input[data-field="open_temp_threshold_c"]').value);
+      const open_soil_max_pct = parseFloat(fs.querySelector('input[data-field="open_soil_max_pct"]').value);
+      return { mode: 'sensor', open_temp_threshold_c, open_soil_max_pct, close_temp_threshold_c, close_soil_min_pct, max_open_duration_s };
+    } else {
+      const schedule = Array.from(fs.querySelectorAll('.win-row')).map(row => ({
+        start: row.querySelector('input[data-field="start"]').value,
+        end: row.querySelector('input[data-field="end"]').value
+      })).filter(w => w.start && w.end);
+      return { mode: 'schedule', close_temp_threshold_c, close_soil_min_pct, max_open_duration_s, schedule };
+    }
+  }
+  return { zone, valve_1: valvePayload(1), valve_2: valvePayload(2) };
+}
+
+function clientValidate(payload) {
+  for (const k of ['valve_1', 'valve_2']) {
+    const v = payload[k];
+    if (v.mode === 'schedule') {
+      if (v.schedule.length > 12) return 'Maksimal 12 window jadwal per katup';
+      const parsed = [];
+      for (let i = 0; i < v.schedule.length; i++) {
+        const w = v.schedule[i];
+        if (!w.start || !w.end) return `Window ke-${i + 1} wajib diisi waktu mulai & selesai`;
+        if (w.start >= w.end) {
+          if (w.start > w.end) return `Window ${w.start}-${w.end} melewati tengah malam. Harap pisahkan jadi ${w.start}-23:59 dan 00:00-${w.end}`;
+          return `Window ke-${i + 1} jam mulai harus sebelum jam selesai`;
+        }
+        parsed.push(w);
+      }
+      parsed.sort((a, b) => a.start.localeCompare(b.start));
+      for (let i = 1; i < parsed.length; i++) {
+        if (parsed[i].start < parsed[i - 1].end) {
+          return `Window tumpang tindih: ${parsed[i - 1].start}-${parsed[i - 1].end} dan ${parsed[i].start}-${parsed[i].end}`;
+        }
+        if (parsed[i].start === parsed[i - 1].start && parsed[i].end === parsed[i - 1].end) {
+          return 'Terdapat duplikasi window jadwal';
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// --- MODAL TAMBAH NODE ---
+const modalAddNode = document.getElementById('modal-add-node');
+const inputNodeId = document.getElementById('new-node-id');
+const inputNodeZone = document.getElementById('new-node-zone');
+const modalAddErr = document.getElementById('modal-add-node-err');
+
+function openAddNodeModal() {
+  inputNodeId.value = '';
+  inputNodeZone.value = '';
+  modalAddErr.hidden = true;
+  modalAddNode.hidden = false;
+  inputNodeId.focus();
+}
+
+function closeAddNodeModal() {
+  modalAddNode.hidden = true;
+}
+
+document.getElementById('btn-add-node').addEventListener('click', openAddNodeModal);
+document.getElementById('btn-cancel-add-node').addEventListener('click', closeAddNodeModal);
+
+document.getElementById('btn-submit-add-node').addEventListener('click', async () => {
+  const id = inputNodeId.value.trim();
+  const zone = inputNodeZone.value.trim() || null;
+  if (!id) {
+    modalAddErr.textContent = 'ID Node wajib diisi!';
+    modalAddErr.hidden = false;
+    return;
+  }
+  try {
+    const res = await fetch('/api/nodes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, zone })
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      modalAddErr.textContent = body.error || res.statusText;
+      modalAddErr.hidden = false;
+      return;
+    }
+    closeAddNodeModal();
+    showToast(`Node ${id} berhasil didaftarkan!`, 'success');
+    applyConfigToCache(body.node);
+    await loadSettingsPage();
+    await loadNodes();
+  } catch (e) {
+    modalAddErr.textContent = e.message;
+    modalAddErr.hidden = false;
+  }
+});
+
+document.getElementById('btn-reload-settings').addEventListener('click', async () => {
+  await loadSettingsPage();
+  showToast('Pengaturan dimuat ulang', 'info');
+});
+
+// --- LOGOUT ---
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  if (confirm('Apakah Anda yakin ingin keluar dari sesi ini?')) {
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+    } catch (e) {}
+    location.href = '/login';
+  }
+});
+
+// --- INITIATE CYCLES ---
+loadNodes();
+setInterval(loadNodes, 4000);
+loadWeather();
+setInterval(loadWeather, WEATHER_REFRESH_MS);
 </script>
 </body>
 </html>

@@ -3,3 +3,8 @@ data/*.db*
 *.log
 deploy/.ssh/
 .claude/
+backup-pi/
+plan-pengaturan-db.md
+.kilo/
+tests/
+.DS_Store

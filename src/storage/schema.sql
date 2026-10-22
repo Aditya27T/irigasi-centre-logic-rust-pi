@@ -23,7 +23,6 @@ CREATE TABLE IF NOT EXISTS twin_state (
     valve_1_expires_at        INTEGER,
     valve_2_source            TEXT NOT NULL DEFAULT 'auto',
     valve_2_expires_at        INTEGER,
-    water_balance_mm          REAL NOT NULL DEFAULT 0,
     last_reading_at           INTEGER,
     updated_at                INTEGER NOT NULL
 );
@@ -50,4 +49,21 @@ CREATE TABLE IF NOT EXISTS command_acks (
     device_id     TEXT NOT NULL,
     status        TEXT,
     received_at   INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS node_settings (
+    device_id   TEXT PRIMARY KEY,
+    zone        TEXT,
+    enabled     INTEGER NOT NULL DEFAULT 1,
+    created_at  INTEGER NOT NULL,
+    updated_at  INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS valve_settings (
+    device_id    TEXT NOT NULL,
+    valve_id     INTEGER NOT NULL CHECK (valve_id IN (1, 2)),
+    config_json  TEXT NOT NULL,
+    mode         TEXT GENERATED ALWAYS AS (json_extract(config_json, '$.mode')) VIRTUAL,
+    updated_at   INTEGER NOT NULL,
+    PRIMARY KEY (device_id, valve_id)
 );
